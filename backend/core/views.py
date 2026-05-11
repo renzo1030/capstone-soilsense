@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import transaction
 from django.conf import settings
 
-from .models import Account, Role, Farmer, Farm, SoilReading, SoilHealthStatus, Recommendation, Fertilizer
+from .models import Account, Role, Farmer, MaoStaff, Farm, SoilReading, SoilHealthStatus, Recommendation, Fertilizer
 from .serializers import AccountSerializer, SoilReadingSerializer
 from .ml_service import predict_soil_condition
 
@@ -344,3 +344,84 @@ def mao_farms_data(request):
         })
         
     return Response(data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_mao(request):
+    """
+    SuperAdmin Endpoint to list all MAO Administrators.
+    """
+    user = request.user
+    if not user.is_superuser:
+        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+
+    mao_accounts = MaoStaff.objects.select_related('account').all()
+    data = []
+    for mao in mao_accounts:
+        data.append({
+            'id': mao.account.id,
+            'control_id': mao.account.username,
+            'firstname': mao.firstname,
+            'lastname': mao.lastname,
+            'position': mao.position,
+        })
+    return Response(data)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_mao(request, account_id):
+    """
+    SuperAdmin Endpoint to delete an MAO Administrator account.
+    """
+    user = request.user
+    if not user.is_superuser:
+        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        account = Account.objects.get(id=account_id, is_superuser=False)
+        account.delete()
+        return Response({'message': 'MAO account deleted successfully.'}, status=status.HTTP_200_OK)
+    except Account.DoesNotExist:
+        return Response({'error': 'Account not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_farmers(request):
+    """
+    MAO Endpoint to list all registered Farmers.
+    """
+    user = request.user
+    if not user.role or user.role.role_name != 'mao':
+        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+
+    farmers = Farmer.objects.select_related('account').all()
+    data = []
+    for farmer in farmers:
+        data.append({
+            'id': farmer.account.id,
+            'farmer_id': farmer.farmer_id,
+            'control_id': farmer.account.username,
+            'firstname': farmer.firstname,
+            'lastname': farmer.lastname,
+            'barangay': farmer.barangay,
+            'contact_number': farmer.contact_number,
+        })
+    return Response(data)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_farmer(request, account_id):
+    """
+    MAO Endpoint to delete a Farmer account (cascades to Farmer profile and Farms).
+    """
+    user = request.user
+    if not user.role or user.role.role_name != 'mao':
+        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        account = Account.objects.get(id=account_id)
+        account.delete()
+        return Response({'message': 'Farmer account deleted successfully.'}, status=status.HTTP_200_OK)
+    except Account.DoesNotExist:
+        return Response({'error': 'Account not found.'}, status=status.HTTP_404_NOT_FOUND)
+

@@ -9,5 +9,9 @@ urlpatterns = [
     path('mao/dashboard/', views.mao_dashboard_data, name='api_mao_dashboard'),
     path('mao/logs/', views.mao_logs_data, name='api_mao_logs'),
     path('mao/farms/', views.mao_farms_data, name='api_mao_farms'),
+    path('mao/list-farmers/', views.list_farmers, name='api_list_farmers'),
+    path('mao/delete-farmer/<int:account_id>/', views.delete_farmer, name='api_delete_farmer'),
     path('superadmin/register-mao/', views.register_mao, name='api_register_mao'),
+    path('superadmin/list-mao/', views.list_mao, name='api_list_mao'),
+    path('superadmin/delete-mao/<int:account_id>/', views.delete_mao, name='api_delete_mao'),
 ]

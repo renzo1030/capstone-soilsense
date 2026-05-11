@@ -59,7 +59,7 @@ const Login = () => {
                                 type="text" 
                                 placeholder="e.g. UN-2026-001" 
                                 value={controlId}
-                                onChange={(e) => setControlId(e.target.value)}
+                                onChange={(e) => setControlId(e.target.value.toUpperCase())}
                                 required 
                             />
                         </div>
