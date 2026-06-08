@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sprout, UserCircle, Hash, Lock } from 'lucide-react';
+import { Sprout, Hash, Lock } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 const Login = () => {
     const navigate = useNavigate();
     const [controlId, setControlId] = useState('');
@@ -12,7 +13,7 @@ const Login = () => {
         setError('');
         setIsLoading(true);
         try {
-            const response = await fetch('http://localhost:8000/api/auth/login/', {
+            const response = await fetch(`${API_BASE_URL}/auth/login/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -26,9 +27,7 @@ const Login = () => {
             if (response.ok) {
                 localStorage.setItem('access_token', data.token);
                 localStorage.setItem('user_role', data.user.role);
-                if (data.user.role === 'superadmin') {
-                    navigate('/superadmin/dashboard');
-                } else if (data.user.role === 'mao') {
+                if (data.user.role === 'mao') {
                     navigate('/mao/dashboard');
                 } else if (data.user.role === 'farmer') {
                     navigate('/farmer/dashboard');
@@ -36,7 +35,7 @@ const Login = () => {
             } else {
                 setError(data.error || 'Invalid credentials.');
             }
-        } catch (err) {
+        } catch {
             setError('Failed to connect to the server. Is Django running?');
         } finally {
             setIsLoading(false);
@@ -77,7 +76,7 @@ const Login = () => {
                             />
                         </div>
                     </div>
-                    {error && <div className="error-message" style={{ color: '#ef4444', marginBottom: '15px', fontSize: '0.9rem', fontWeight: '500' }}>{error}</div>}
+                    {error && <div className="error-message">{error}</div>}
                     <button type="submit" className="btn-submit" disabled={isLoading}>
                         {isLoading ? 'Connecting to Server...' : 'Login to Dashboard'}
                     </button>

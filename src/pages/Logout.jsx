@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 const Logout = () => {
     useEffect(() => {
@@ -13,7 +13,7 @@ const Logout = () => {
                 <p className="logout-text">
                     You have successfully logged out of SoilSense.
                 </p>
-                <Link to="/login" className="btn-submit" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}>
+                <Link to="/login" className="btn-submit btn-block">
                     Return to Login
                 </Link>
             </div>

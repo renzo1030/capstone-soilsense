@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 const Sidebar = ({ role }) => {
@@ -17,11 +17,9 @@ const Sidebar = ({ role }) => {
         { path: '/mao/devices', label: 'Hardware Registry' },
         { path: '/mao/history', label: 'All Logs' },
     ];
-    const superadminLinks = [
-        { path: '/superadmin/dashboard', label: 'Add MAO Staff' },
-    ];
+
     const getLinks = () => {
-        if (role === 'superadmin') return superadminLinks;
+
         if (role === 'mao') return maoLinks;
         if (role === 'farmer') return farmerLinks;
         return [{ path: '/login', label: 'Login' }];

@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import ConfirmModal from '../components/ConfirmModal';
-import { UserPlus, MapPin, Phone, User, Hash, Lock, Tractor, Trash2, RefreshCw } from 'lucide-react';
+import { UserPlus, MapPin, Phone, User, Hash, Lock, Trash2, RefreshCw, Cpu, Ruler, Eye, X } from 'lucide-react';
+import { API_BASE_URL } from '../config';
+import toast from 'react-hot-toast';
 
 const MaoRegisterFarmer = () => {
     const [formData, setFormData] = useState({
@@ -10,11 +12,8 @@ const MaoRegisterFarmer = () => {
         firstname: '',
         lastname: '',
         contact_number: '',
-        barangay: '',
-        farm_location: '',
-        farm_area_sqm: ''
+        barangay: ''
     });
-    const [status, setStatus] = useState({ type: '', message: '' });
     const [loading, setLoading] = useState(false);
 
     // Farmer list state
@@ -23,13 +22,21 @@ const MaoRegisterFarmer = () => {
     const [modal, setModal] = useState({ open: false, id: null, name: '' });
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    // Profile Modal State
+    const [profileModal, setProfileModal] = useState({ open: false, farmer: null });
+    const openProfileModal = (farmer) => setProfileModal({ open: true, farmer });
+    const closeProfileModal = () => setProfileModal({ open: false, farmer: null });
     const fetchFarmerList = useCallback(async () => {
         setListLoading(true);
         const token = localStorage.getItem('access_token');
         try {
-            const res = await fetch('http://localhost:8000/api/mao/list-farmers/', {
+            const res = await fetch(`${API_BASE_URL}/mao/list-farmers/`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (res.status === 401) {
+                window.location.href = '/logout';
+                return;
+            }
             if (res.ok) {
                 const data = await res.json();
                 setFarmerList(data);
@@ -53,10 +60,9 @@ const MaoRegisterFarmer = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setStatus({ type: '', message: '' });
         const token = localStorage.getItem('access_token');
         try {
-            const response = await fetch('http://localhost:8000/api/mao/register-farmer/', {
+            const response = await fetch(`${API_BASE_URL}/mao/register-farmer/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -64,25 +70,30 @@ const MaoRegisterFarmer = () => {
                 },
                 body: JSON.stringify(formData)
             });
+            if (response.status === 401) {
+                window.location.href = '/logout';
+                return;
+            }
             let data;
             try {
                 data = await response.json();
-            } catch (err) {
-                setStatus({ type: 'error', message: '❌ Server error. Could not parse response.' });
+            } catch {
+                toast.error('Server error. Could not parse response.');
+                setLoading(false);
                 return;
             }
             if (response.ok) {
-                setStatus({ type: 'success', message: `✅ Success! New farmer registered. Farm ID generated: ${data.farm_id}` });
+                toast.success(`Success! New farmer registered (ID: ${data.farmer_id}). Please assign hardware in the registry.`);
                 setFormData({
                     control_id: '', password: '', firstname: '', lastname: '',
-                    contact_number: '', barangay: '', farm_location: '', farm_area_sqm: ''
+                    contact_number: '', barangay: ''
                 });
                 fetchFarmerList(); // Refresh list
             } else {
-                setStatus({ type: 'error', message: `❌ Error: ${data.error || 'Failed to register farmer.'}` });
+                toast.error(data.error || 'Failed to register farmer.');
             }
-        } catch (error) {
-            setStatus({ type: 'error', message: '❌ Connection error. Is the Django server running?' });
+        } catch {
+            toast.error('Connection error. Is the Django server running?');
         } finally {
             setLoading(false);
         }
@@ -96,16 +107,25 @@ const MaoRegisterFarmer = () => {
         setDeleteLoading(true);
         const token = localStorage.getItem('access_token');
         try {
-            const res = await fetch(`http://localhost:8000/api/mao/delete-farmer/${modal.id}/`, {
+            const res = await fetch(`${API_BASE_URL}/mao/delete-farmer/${modal.id}/`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (res.status === 401) {
+                window.location.href = '/logout';
+                return;
+            }
             if (res.ok) {
                 setFarmerList(prev => prev.filter(f => f.id !== modal.id));
                 setModal({ open: false, id: null, name: '' });
+                toast.success('Farmer account deleted successfully.');
+            } else {
+                const data = await res.json();
+                toast.error(data.error || 'Failed to delete farmer.');
             }
         } catch (err) {
             console.error('Delete failed:', err);
+            toast.error('Connection error while deleting.');
         } finally {
             setDeleteLoading(false);
         }
@@ -113,6 +133,55 @@ const MaoRegisterFarmer = () => {
 
     return (
         <>
+            {/* Profile Modal */}
+            {profileModal.open && profileModal.farmer && (
+                <div className="modal-overlay">
+                    <div className="modal-container" style={{ maxWidth: '500px' }}>
+                        <div className="modal-header-container">
+                            <div className="modal-icon-wrapper" style={{ background: 'var(--primary-bg)', color: 'var(--primary)' }}>
+                                <User size={22} />
+                            </div>
+                            <h3 className="modal-title">Farmer Profile</h3>
+                            <button onClick={closeProfileModal} className="btn-close">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div className="modal-body-text" style={{ textAlign: 'left' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                <div>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>Control ID</span>
+                                    <p style={{ fontWeight: '600', color: 'var(--text-dark)', marginTop: '4px' }}>{profileModal.farmer.control_id}</p>
+                                </div>
+                                <div>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>Full Name</span>
+                                    <p style={{ fontWeight: '600', color: 'var(--text-dark)', marginTop: '4px' }}>{profileModal.farmer.firstname} {profileModal.farmer.lastname}</p>
+                                </div>
+                                <div>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>Contact Number</span>
+                                    <p style={{ fontWeight: '600', color: 'var(--text-dark)', marginTop: '4px' }}>{profileModal.farmer.contact_number}</p>
+                                </div>
+                                <div>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>Barangay</span>
+                                    <p style={{ fontWeight: '600', color: 'var(--text-dark)', marginTop: '4px' }}>{profileModal.farmer.barangay}</p>
+                                </div>
+                                <div style={{ gridColumn: '1 / -1', padding: '15px', background: 'var(--bg-color)', borderRadius: '8px', marginTop: '10px' }}>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>Farm Location</span>
+                                    <p style={{ fontWeight: '600', color: 'var(--text-dark)', marginTop: '4px', marginBottom: '10px' }}>{profileModal.farmer.farm_location}</p>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>Farm Area (sqm)</span>
+                                    <p style={{ fontWeight: '600', color: 'var(--text-dark)', marginTop: '4px' }}>{profileModal.farmer.farm_area_sqm} sqm</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="modal-footer" style={{ marginTop: '20px' }}>
+                            <button onClick={closeProfileModal} className="btn-submit" style={{ width: '100%', marginTop: '0' }}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
             <ConfirmModal
                 isOpen={modal.open}
                 title="Delete Farmer Account"
@@ -126,17 +195,12 @@ const MaoRegisterFarmer = () => {
                 <header className="dashboard-header">
                     <div>
                         <h1>Register New Farmer</h1>
-                        <p>Create a new farmer account and farm profile simultaneously.</p>
+                        <p>Create a new farmer account.</p>
                     </div>
                 </header>
 
                 {/* Register Farmer Form */}
                 <div className="glass-card-form">
-                    {status.message && (
-                        <div className={`status-badge ${status.type === 'success' ? 'badge-optimal' : 'badge-warning-alt'}`} style={{ marginBottom: '30px', padding: '16px', display: 'block', borderRadius: '12px' }}>
-                            {status.message}
-                        </div>
-                    )}
                     <form onSubmit={handleSubmit} className="form-grid">
                         {/* Account Credentials */}
                         <div className="form-section">
@@ -196,49 +260,21 @@ const MaoRegisterFarmer = () => {
                             </div>
                         </div>
 
-                        {/* Farm Profile */}
-                        <div className="form-section" style={{ gridColumn: '1 / -1' }}>
-                            <div className="section-badge">
-                                <span className="section-badge-icon"><Tractor size={18} color="var(--primary)" /></span>
-                                Farm Profile
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-                                <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label>Farm Location</label>
-                                    <div className="input-icon-wrapper">
-                                        <MapPin className="input-icon" size={20} />
-                                        <input type="text" name="farm_location" value={formData.farm_location} onChange={handleChange} required placeholder="e.g., Brgy. San Jose Lot A" />
-                                    </div>
-                                </div>
-                                <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label>Total Area (Square Meters)</label>
-                                    <div className="input-icon-wrapper">
-                                        <MapPin className="input-icon" size={20} />
-                                        <input type="number" name="farm_area_sqm" value={formData.farm_area_sqm} onChange={handleChange} required placeholder="e.g., 10000" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                        <div className="grid-col-full mt-10">
                             <button type="submit" className={`btn-submit ${loading ? 'btn-submit-loading' : ''}`} disabled={loading}>
-                                {loading ? 'Registering...' : 'Register Farmer & Farm'}
+                                {loading ? 'Registering...' : 'Register Farmer'}
                             </button>
                         </div>
                     </form>
                 </div>
 
                 {/* Farmer List */}
-                <div className="table-container" style={{ marginTop: '40px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                        <h3 className="section-title" style={{ margin: 0 }}>Registered Farmers</h3>
+                <div className="table-container mt-30">
+                    <div className="flex-between-mb16">
+                        <h3 className="section-title m-0">Registered Farmers</h3>
                         <button
                             onClick={fetchFarmerList}
-                            style={{
-                                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                                borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
-                                color: 'var(--text-secondary, #aaa)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem'
-                            }}
+                            className="btn-refresh"
                         >
                             <RefreshCw size={14} /> Refresh
                         </button>
@@ -246,7 +282,7 @@ const MaoRegisterFarmer = () => {
                     {listLoading ? (
                         <p>Loading farmer list...</p>
                     ) : farmerList.length === 0 ? (
-                        <p style={{ color: 'var(--text-secondary, #aaa)' }}>No farmers registered yet.</p>
+                        <p className="text-secondary">No farmers registered yet.</p>
                     ) : (
                         <table className="styled-table">
                             <thead>
@@ -266,24 +302,20 @@ const MaoRegisterFarmer = () => {
                                         <td>{farmer.barangay}</td>
                                         <td>{farmer.contact_number}</td>
                                         <td>
-                                            <button
-                                                onClick={() => openDeleteModal(farmer)}
-                                                style={{
-                                                    background: 'rgba(255,60,60,0.12)',
-                                                    border: '1px solid rgba(255,60,60,0.3)',
-                                                    borderRadius: '8px',
-                                                    padding: '6px 14px',
-                                                    cursor: 'pointer',
-                                                    color: '#ff5050',
-                                                    display: 'flex', alignItems: 'center', gap: '6px',
-                                                    fontWeight: 600, fontSize: '0.85rem',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,60,60,0.25)'}
-                                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,60,60,0.12)'}
-                                            >
-                                                <Trash2 size={14} /> Delete
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={() => openProfileModal(farmer)}
+                                                    className="btn-view"
+                                                >
+                                                    <Eye size={14} /> View
+                                                </button>
+                                                <button
+                                                    onClick={() => openDeleteModal(farmer)}
+                                                    className="btn-delete"
+                                                >
+                                                    <Trash2 size={14} /> Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

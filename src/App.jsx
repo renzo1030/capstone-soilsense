@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Logout from './pages/Logout';
@@ -9,19 +8,18 @@ import MaoDevices from './pages/MaoDevices';
 import MaoHistory from './pages/MaoHistory';
 import MaoRegisterFarmer from './pages/MaoRegisterFarmer';
 import ProtectedRoute from './components/ProtectedRoute';
-import SuperAdminDashboard from './pages/SuperAdminDashboard';
+
+import { Toaster } from 'react-hot-toast';
+
 function App() {
   return (
     <Router>
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
-        <Route path="/superadmin/dashboard" element={
-          <ProtectedRoute allowedRoles={['superadmin']}>
-            <SuperAdminDashboard />
-          </ProtectedRoute>
-        } />
+
         <Route path="/farmer/dashboard" element={
           <ProtectedRoute allowedRoles={['farmer']}>
             <FarmerDashboard />

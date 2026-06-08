@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL, MUNICIPALITY, THRESHOLDS } from '../config';
 const MaoDashboard = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -10,9 +11,13 @@ const MaoDashboard = () => {
             const token = localStorage.getItem('access_token');
             if (!token) return;
             try {
-                const response = await fetch('http://localhost:8000/api/mao/dashboard/', {
+                const response = await fetch(`${API_BASE_URL}/mao/dashboard/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (response.status === 401) {
+                    window.location.href = '/logout';
+                    return;
+                }
                 if (response.ok) {
                     const result = await response.json();
                     setData(result);
@@ -32,8 +37,22 @@ const MaoDashboard = () => {
             <>
                 <Sidebar role="mao" />
                 <main className="content">
-                    <div style={{ padding: '40px', textAlign: 'center' }}>
-                        <h2>Loading Municipal Data...</h2>
+                    <header className="dashboard-header">
+                        <div style={{ width: '100%' }}>
+                            <div className="skeleton skeleton-title"></div>
+                            <div className="skeleton skeleton-text skeleton-text-short"></div>
+                        </div>
+                    </header>
+                    <div className="dashboard-stats">
+                        <div className="skeleton skeleton-stat-box"></div>
+                        <div className="skeleton skeleton-stat-box"></div>
+                        <div className="skeleton skeleton-stat-box"></div>
+                    </div>
+                    <div className="table-container">
+                        <div className="skeleton skeleton-table-row" style={{height: '50px', marginBottom: '20px'}}></div>
+                        <div className="skeleton skeleton-table-row"></div>
+                        <div className="skeleton skeleton-table-row"></div>
+                        <div className="skeleton skeleton-table-row"></div>
                     </div>
                 </main>
             </>
@@ -47,7 +66,7 @@ const MaoDashboard = () => {
                 <header className="dashboard-header">
                     <div>
                         <h1>Municipal Data Center</h1>
-                        <p>Live Overview for <strong>Unisan Agriculture Office</strong></p>
+                        <p>Live Overview for <strong>{MUNICIPALITY.officeName}</strong></p>
                     </div>
                     <button className="btn-sm btn-header" onClick={() => navigate('/mao/history')}>View Full Logs</button>
                 </header>
@@ -80,7 +99,9 @@ const MaoDashboard = () => {
                                     <th>N-P-K (mg/kg)</th>
                                     <th>pH</th>
                                     <th>Moisture</th>
-                                    <th>Condition</th>
+                                    <th>ML Condition</th>
+                                    <th>Recommended Fertilizer</th>
+                                    <th>Amount (kg/ha)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -90,13 +111,15 @@ const MaoDashboard = () => {
                                         <td>{status.farmer_name}</td>
                                         <td>{status.barangay}</td>
                                         <td>{status.nitrogen} - {status.phosphorus} - {status.potassium}</td>
-                                        <td className={status.ph < 5.5 || status.ph > 7.5 ? "text-danger fw-600" : "text-success fw-600"}>{status.ph}</td>
-                                        <td className={status.moisture < 40 ? "text-warning fw-600" : "text-success fw-600"}>{status.moisture}%</td>
+                                        <td className={status.ph < THRESHOLDS.ph.low || status.ph > THRESHOLDS.ph.high ? "text-danger fw-600" : "text-success fw-600"}>{status.ph}</td>
+                                        <td className={status.moisture < THRESHOLDS.moisture.low ? "text-warning fw-600" : "text-success fw-600"}>{status.moisture}%</td>
                                         <td>
                                             <span className={`badge ${status.condition === 'Optimal' ? 'badge-optimal' : 'badge-warning-alt'}`}>
                                                 {status.condition}
                                             </span>
                                         </td>
+                                        <td><strong>{status.fertilizer_name || 'N/A'}</strong></td>
+                                        <td>{status.recommended_amount_kg != null ? `${status.recommended_amount_kg} kg` : 'N/A'}</td>
                                     </tr>
                                 ))}
                             </tbody>

@@ -677,6 +677,256 @@ body {
     60% { transform: rotate(0deg); }
     100% { transform: rotate(0deg); }
 }
+/* ==========================================================================
+   Utility Classes & Extracted Inline Styles
+   ========================================================================== */
+
+/* Spacing Utilities */
+.mt-10 { margin-top: 10px; }
+.mt-30 { margin-top: 30px; }
+.m-0 { margin: 0; }
+.mb-15 { margin-bottom: 15px; }
+.p-40 { padding: 40px; }
+.text-center { text-align: center; }
+
+/* Grid Layouts */
+.grid-col-full { grid-column: 1 / -1; }
+.grid-2-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+@media (max-width: 768px) {
+    .grid-2-col {
+        grid-template-columns: 1fr;
+    }
+}
+.grid-auto-fit-250 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Flex Utilities */
+.flex-between-mb16 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+.action-buttons-flex {
+    display: flex;
+    gap: 8px;
+}
+
+/* Typography Utilities */
+.text-secondary { color: var(--text-light); }
+.error-message {
+    color: var(--danger);
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Container Adjustments */
+.loading-container {
+    padding: 40px;
+    text-align: center;
+}
+.form-container-lg {
+    max-width: 800px;
+    margin: 0 auto 40px;
+}
+.table-container-center {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Button Variants */
+.btn-block {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+.btn-refresh {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+.btn-refresh:hover {
+    color: var(--primary);
+    background: rgba(0, 0, 0, 0.05);
+}
+.btn-delete {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 6px 14px;
+    cursor: pointer;
+    color: var(--danger);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.25);
+}
+.btn-view {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    padding: 6px 14px;
+    cursor: pointer;
+    color: var(--primary-hover);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+.btn-view:hover {
+    background: rgba(16, 185, 129, 0.25);
+}
+
+/* Status Badge Enhancements */
+.status-badge-lg {
+    margin-bottom: 30px;
+    padding: 16px;
+    display: block;
+    border-radius: 12px;
+}
+
+/* Modal Components */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+.modal-container {
+    background: var(--surface-solid);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    padding: 32px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    animation: modalSlideUp 0.3s ease-out;
+}
+@keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.modal-header-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.modal-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.modal-icon-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+.modal-icon-primary {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--primary);
+}
+.modal-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-dark);
+}
+.btn-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+.btn-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-dark);
+}
+.modal-body-text {
+    margin: 0 0 28px;
+    color: var(--text-light);
+    line-height: 1.6;
+}
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+.btn-cancel {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: transparent;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-cancel:hover {
+    background: #f3f4f6;
+}
+.btn-confirm {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-confirm.danger {
+    background: var(--danger);
+}
+.btn-confirm.danger:hover {
+    background: #dc2626;
+}
+.btn-confirm.primary {
+    background: var(--primary);
+}
+.btn-confirm.primary:hover {
+    background: var(--primary-hover);
+}
+
 @media (max-width: 1024px) {
     .admin-grid {
         grid-template-columns: 1fr;
@@ -729,5 +979,43 @@ body {
     .logo {
         margin-bottom: 30px;
         margin-top: 10px;
+    }
+}
+
+/* Skeleton Loader Styles */
+.skeleton {
+    background: #e2e8f0;
+    background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+    border-radius: 8px;
+    background-size: 200% 100%;
+    animation: 1.5s shine linear infinite;
+}
+.skeleton-title {
+    height: 32px;
+    width: 60%;
+    margin-bottom: 12px;
+    border-radius: 4px;
+}
+.skeleton-text {
+    height: 16px;
+    width: 100%;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+.skeleton-text-short {
+    width: 40%;
+}
+.skeleton-stat-box {
+    height: 150px;
+    border-radius: var(--card-radius);
+}
+.skeleton-table-row {
+    height: 40px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+}
+@keyframes shine {
+    to {
+        background-position-x: -200%;
     }
 }

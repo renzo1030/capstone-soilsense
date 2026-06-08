@@ -1,18 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import { API_BASE_URL, THRESHOLDS } from '../config';
 const FarmerHistory = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [farmerInfo, setFarmerInfo] = useState(null);
     useEffect(() => {
+        const fetchFarmerInfo = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/farmer/dashboard/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.status === 401) {
+                    window.location.href = '/logout';
+                    return;
+                }
+                if (response.ok) {
+                    const data = await response.json();
+                    setFarmerInfo(data);
+                }
+            } catch (error) {
+                console.error("Error fetching farmer info:", error);
+            }
+        };
         const fetchLogs = async () => {
             const token = localStorage.getItem('access_token');
             if (!token) return;
             try {
-                const response = await fetch('http://localhost:8000/api/farmer/logs/', {
+                const response = await fetch(`${API_BASE_URL}/farmer/logs/`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
+                if (response.status === 401) {
+                    window.location.href = '/logout';
+                    return;
+                }
                 if (response.ok) {
                     const data = await response.json();
                     setLogs(data);
@@ -23,6 +48,7 @@ const FarmerHistory = () => {
                 setLoading(false);
             }
         };
+        fetchFarmerInfo();
         fetchLogs();
         const interval = setInterval(fetchLogs, 5000);
         return () => clearInterval(interval);
@@ -31,54 +57,88 @@ const FarmerHistory = () => {
         const date = new Date(isoString);
         return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
+    const handleDownloadLog = () => {
+        if (!logs.length) return;
+        const headers = ['Date & Time', 'N (mg/kg)', 'P (mg/kg)', 'K (mg/kg)', 'pH', 'Moisture (%)', 'ML Condition', 'Recommended Fertilizer', 'Amount (kg/ha)'];
+        const rows = logs.map(log => [
+            formatDate(log.timestamp),
+            log.nitrogen,
+            log.phosphorus,
+            log.potassium,
+            log.ph,
+            log.moisture,
+            log.condition,
+            log.fertilizer_name || 'N/A',
+            log.recommended_amount_kg != null ? log.recommended_amount_kg : 'N/A'
+        ]);
+        const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const name = farmerInfo ? farmerInfo.control_id : 'farmer';
+        link.download = `SoilSense_Log_${name}_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
     return (
         <>
             <Sidebar role="farmer" />
             <main className="content">
                 <header className="dashboard-header">
                     <div>
-                        <h1>Brgy. Central Field</h1>
-                        <p>Live IoT Sensor Data for <strong>Farmer #FARMER001</strong></p>
+                        <h1>{farmerInfo ? farmerInfo.farm_location : 'Loading...'}</h1>
+                        <p>Live IoT Sensor Data for <strong>{farmerInfo ? `${farmerInfo.farmer_name} (#${farmerInfo.control_id})` : 'Loading...'}</strong></p>
                     </div>
-                    <button className="btn-sm btn-header">Download Log</button>
+                    <button className="btn-sm btn-header" onClick={handleDownloadLog} disabled={logs.length === 0}>⬇ Download CSV</button>
                 </header>
                 <div className="table-container">
-                    {loading ? (
-                        <p>Loading sensor data...</p>
-                    ) : logs.length === 0 ? (
-                        <p>No sensor readings available yet. Run the simulate_iot.py script!</p>
-                    ) : (
-                        <table className="styled-table">
-                            <thead>
+                    <table className="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>N (mg/kg)</th>
+                                <th>P (mg/kg)</th>
+                                <th>K (mg/kg)</th>
+                                <th>pH</th>
+                                <th>Moisture</th>
+                                <th>ML Condition</th>
+                                <th>Recommended Fertilizer</th>
+                                <th>Amount (kg/ha)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
                                 <tr>
-                                    <th>Date & Time</th>
-                                    <th>N (mg/kg)</th>
-                                    <th>P (mg/kg)</th>
-                                    <th>K (mg/kg)</th>
-                                    <th>pH</th>
-                                    <th>Moisture</th>
-                                    <th>Status (ML)</th>
+                                    <td colSpan="9" style={{ textAlign: 'center', padding: '30px' }}>Loading sensor data...</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {logs.map((log) => (
+                            ) : logs.length === 0 ? (
+                                <tr>
+                                    <td colSpan="9" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-light)' }}>No sensor readings available yet.</td>
+                                </tr>
+                            ) : (
+                                logs.map((log) => (
                                     <tr key={log.id}>
                                         <td>{formatDate(log.timestamp)}</td>
                                         <td>{log.nitrogen}</td>
                                         <td>{log.phosphorus}</td>
                                         <td>{log.potassium}</td>
-                                        <td className={log.ph < 5.5 ? "text-danger fw-600" : "text-success fw-600"}>{log.ph}</td>
-                                        <td className={log.moisture < 40 ? "text-warning fw-600" : "text-success fw-600"}>{log.moisture}%</td>
+                                        <td className={log.ph < THRESHOLDS.ph.low ? "text-danger fw-600" : "text-success fw-600"}>{log.ph}</td>
+                                        <td className={log.moisture < THRESHOLDS.moisture.low ? "text-warning fw-600" : "text-success fw-600"}>{log.moisture}%</td>
                                         <td>
                                             <span className={log.condition === 'Optimal' ? "badge badge-optimal" : "badge badge-warning-alt"}>
                                                 {log.condition}
                                             </span>
                                         </td>
+                                        <td><strong>{log.fertilizer_name || 'N/A'}</strong></td>
+                                        <td>{log.recommended_amount_kg != null ? `${log.recommended_amount_kg} kg` : 'N/A'}</td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </main>
         </>

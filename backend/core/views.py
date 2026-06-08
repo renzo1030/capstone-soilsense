@@ -9,6 +9,8 @@ from django.conf import settings
 from .models import Account, Role, Farmer, MaoStaff, Farm, SoilReading, SoilHealthStatus, Recommendation, Fertilizer
 from .serializers import AccountSerializer, SoilReadingSerializer
 from .ml_service import predict_soil_condition
+from .permissions import IsMaoAdmin, IsFarmer
+from django.db.models import Prefetch
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -28,8 +30,7 @@ def login_view(request):
     if account.check_password(password):
         refresh = RefreshToken.for_user(account)
         
-       
-        detected_role = 'superadmin' if account.is_superuser else (account.role.role_name if account.role else 'unknown')
+        detected_role = account.role.role_name if account.role else 'unknown'
 
         return Response({
             'token': str(refresh.access_token),
@@ -66,7 +67,9 @@ def iot_data_ingest(request):
     except Farm.DoesNotExist:
         return Response({'error': 'Unregistered Farm'}, status=status.HTTP_404_NOT_FOUND)
 
-    condition, action_plan = predict_soil_condition(nitrogen, phosphorus, potassium, ph, moisture)
+    condition, action_plan, fert_name, nutrient, amount = predict_soil_condition(
+        nitrogen, phosphorus, potassium, ph, moisture
+    )
     
   
     status_obj, _ = SoilHealthStatus.objects.get_or_create(status_name=condition)
@@ -82,35 +85,46 @@ def iot_data_ingest(request):
         status=status_obj
     )
 
-   
-    fert, _ = Fertilizer.objects.get_or_create(fertilizer_name='Urea (46-0-0)', nutrient_type='Nitrogen')
+    # Store the full fertilizer details including action_plan in description
+    fert, _ = Fertilizer.objects.get_or_create(
+        fertilizer_name=fert_name,
+        nutrient_type=nutrient,
+        defaults={'description': action_plan}
+    )
+    # Always update description to latest action_plan
+    if fert.description != action_plan:
+        fert.description = action_plan
+        fert.save()
+
     Recommendation.objects.create(
         reading=reading,
         fertilizer=fert,
-        recommended_amount_kg=15.0 # Dummy amount
+        recommended_amount_kg=amount
     )
 
     return Response({
         'message': 'Data processed successfully',
         'reading_id': reading.reading_id,
-        'ml_prediction': condition
+        'condition': condition,
+        'fertilizer_recommendation': fert_name,
+        'recommended_amount_kg': amount
     }, status=status.HTTP_201_CREATED)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsFarmer])
 def farmer_logs(request):
     user = request.user
-    if not user.role or user.role.role_name != 'farmer':
-        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
         farmer_profile = user.farmer_profile
         farms = Farm.objects.filter(farmer=farmer_profile)
-        readings = SoilReading.objects.filter(farm__in=farms).order_by('-recorded_at')[:50]
+        readings = SoilReading.objects.filter(farm__in=farms).select_related('status').prefetch_related(
+            'recommendations__fertilizer'
+        ).order_by('-recorded_at')[:50]
         
-        # We need to send custom data shape to React
         data = []
         for r in readings:
+            rec = r.recommendations.first()
             data.append({
                 'id': r.reading_id,
                 'timestamp': r.recorded_at,
@@ -119,26 +133,31 @@ def farmer_logs(request):
                 'potassium': r.potassium_k,
                 'ph': r.ph_level,
                 'moisture': r.moisture,
-                'condition': r.status.status_name if r.status else 'Unknown'
+                'condition': r.status.status_name if r.status else 'Unknown',
+                'fertilizer_name': rec.fertilizer.fertilizer_name if rec else 'N/A',
+                'recommended_amount_kg': rec.recommended_amount_kg if rec else None,
             })
         return Response(data)
     except Farmer.DoesNotExist:
         return Response({'error': 'No profile found'}, status=404)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
 def register_farmer(request):
     """
     MAO Endpoint to register a new Farmer, Farmer Profile, and Farm atomically.
     """
-    user = request.user
-    if not user.role or user.role.role_name != 'mao':
-        return Response({'error': 'Only MAO Administrators can register new farmers.'}, status=status.HTTP_403_FORBIDDEN)
-
     try:
         data = request.data
         control_id = data.get('control_id')
         password = data.get('password')
+        contact_number = data.get('contact_number')
+        
+        # Validation
+        if not contact_number or not contact_number.isdigit() or len(contact_number) < 10:
+            return Response({'error': 'Invalid contact number format.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not password or len(password) < 8:
+            return Response({'error': 'Password must be at least 8 characters long.'}, status=status.HTTP_400_BAD_REQUEST)
         
         # We wrap this in transaction.atomic() so if Farm creation fails, Account isn't created.
         with transaction.atomic():
@@ -161,18 +180,41 @@ def register_farmer(request):
                 firstname=data.get('firstname'),
                 lastname=data.get('lastname'),
                 contact_number=data.get('contact_number'),
+                email=data.get('email'),
                 barangay=data.get('barangay')
-            )
-            
-            # 4. Create Farm
-            farm = Farm.objects.create(
-                farmer=farmer_profile,
-                location=data.get('farm_location'),
-                total_area_sqm=float(data.get('farm_area_sqm', 0))
             )
             
         return Response({
             'message': 'Farmer registered successfully!',
+            'farmer_id': farmer_profile.farmer_id
+        }, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
+def register_farm(request):
+    """
+    MAO Endpoint to register a Farm (Hardware Registry) and link it to an existing Farmer.
+    """
+    try:
+        data = request.data
+        farmer_id = data.get('farmer_id')
+        
+        try:
+            farmer = Farmer.objects.get(farmer_id=farmer_id)
+        except Farmer.DoesNotExist:
+            return Response({'error': 'Farmer not found.'}, status=status.HTTP_404_NOT_FOUND)
+            
+        farm = Farm.objects.create(
+            farmer=farmer,
+            location=data.get('farm_location'),
+            total_area_sqm=float(data.get('farm_area_sqm', 0))
+        )
+        
+        return Response({
+            'message': 'Hardware (Farm) registered successfully!',
             'farm_id': farm.farm_id
         }, status=status.HTTP_201_CREATED)
 
@@ -180,11 +222,9 @@ def register_farmer(request):
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsFarmer])
 def farmer_dashboard_data(request):
     user = request.user
-    if not user.role or user.role.role_name != 'farmer':
-        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
         farmer = user.farmer_profile
@@ -193,8 +233,11 @@ def farmer_dashboard_data(request):
         
         reading_data = None
         if farm:
-            latest_reading = SoilReading.objects.filter(farm=farm).order_by('-recorded_at').first()
+            latest_reading = SoilReading.objects.filter(farm=farm).select_related('status').prefetch_related(
+                'recommendations__fertilizer'
+            ).order_by('-recorded_at').first()
             if latest_reading:
+                rec = latest_reading.recommendations.first()
                 reading_data = {
                     'nitrogen': latest_reading.nitrogen_n,
                     'phosphorus': latest_reading.phosphorus_p,
@@ -202,7 +245,11 @@ def farmer_dashboard_data(request):
                     'ph': latest_reading.ph_level,
                     'moisture': latest_reading.moisture,
                     'condition': latest_reading.status.status_name if latest_reading.status else 'Unknown',
-                    'recorded_at': latest_reading.recorded_at
+                    'recorded_at': latest_reading.recorded_at,
+                    'fertilizer_name': rec.fertilizer.fertilizer_name if rec else 'N/A',
+                    'nutrient_type': rec.fertilizer.nutrient_type if rec else 'N/A',
+                    'recommended_amount_kg': rec.recommended_amount_kg if rec else None,
+                    'action_plan': rec.fertilizer.description if rec else 'Monitor your field closely.',
                 }
 
         return Response({
@@ -216,21 +263,26 @@ def farmer_dashboard_data(request):
         return Response({'error': 'No profile found'}, status=404)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
 def mao_dashboard_data(request):
-    user = request.user
-    if not user.role or user.role.role_name != 'mao':
-        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
-    
     total_farmers = Farmer.objects.count()
     active_farms = Farm.objects.count()
     
     critical_readings = SoilReading.objects.exclude(status__status_name='Optimal').count()
     
+    # Optimize N+1 Query — include recommendations
+    latest_readings = SoilReading.objects.select_related('status').prefetch_related(
+        'recommendations__fertilizer'
+    ).order_by('-recorded_at')
+    farms = Farm.objects.select_related('farmer', 'farmer__account').all().prefetch_related(
+        Prefetch('readings', queryset=latest_readings, to_attr='latest_reading_list')
+    )[:10]
+
     farmer_statuses = []
-    for farm in Farm.objects.all()[:10]:
-        latest = SoilReading.objects.filter(farm=farm).order_by('-recorded_at').first()
+    for farm in farms:
+        latest = farm.latest_reading_list[0] if farm.latest_reading_list else None
         if latest:
+            rec = latest.recommendations.first()
             farmer_statuses.append({
                 'control_id': farm.farmer.account.username,
                 'farmer_name': f"{farm.farmer.firstname} {farm.farmer.lastname}",
@@ -241,6 +293,8 @@ def mao_dashboard_data(request):
                 'ph': latest.ph_level,
                 'moisture': latest.moisture,
                 'condition': latest.status.status_name if latest.status else 'Unknown',
+                'fertilizer_name': rec.fertilizer.fertilizer_name if rec else 'N/A',
+                'recommended_amount_kg': rec.recommended_amount_kg if rec else None,
             })
 
     return Response({
@@ -253,16 +307,21 @@ def mao_dashboard_data(request):
     })
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
 def mao_logs_data(request):
-    user = request.user
-    if not user.role or user.role.role_name != 'mao':
-        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+    farmer_id = request.GET.get('farmer_id')
+    queryset = SoilReading.objects.select_related('farm', 'farm__farmer', 'status').prefetch_related(
+        'recommendations__fertilizer'
+    )
     
-    readings = SoilReading.objects.select_related('farm', 'farm__farmer', 'status').order_by('-recorded_at')[:100]
+    if farmer_id:
+        queryset = queryset.filter(farm__farmer__farmer_id=farmer_id)
+        
+    readings = queryset.order_by('-recorded_at')[:500]
     
     data = []
     for r in readings:
+        rec = r.recommendations.first()
         data.append({
             'id': r.reading_id,
             'timestamp': r.recorded_at,
@@ -273,64 +332,26 @@ def mao_logs_data(request):
             'potassium': r.potassium_k,
             'ph': r.ph_level,
             'moisture': r.moisture,
-            'condition': r.status.status_name if r.status else 'Unknown'
+            'condition': r.status.status_name if r.status else 'Unknown',
+            'fertilizer_name': rec.fertilizer.fertilizer_name if rec else 'N/A',
+            'recommended_amount_kg': rec.recommended_amount_kg if rec else None,
         })
     return Response(data)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def register_mao(request):
-    """
-    SuperAdmin Endpoint to register a new MAO Administrator.
-    """
-    user = request.user
-    if not user.is_superuser:
-        return Response({'error': 'Only Super Admins can register MAO staff.'}, status=status.HTTP_403_FORBIDDEN)
-
-    try:
-        data = request.data
-        control_id = data.get('control_id')
-        password = data.get('password')
-        
-        with transaction.atomic():
-            mao_role = Role.objects.get(role_name='mao')
-            
-            if Account.objects.filter(username=control_id).exists():
-                return Response({'error': 'Control ID already exists!'}, status=status.HTTP_400_BAD_REQUEST)
-                
-            new_account = Account.objects.create_user(
-                username=control_id,
-                password=password,
-                role=mao_role
-            )
-            
-            MaoStaff.objects.create(
-                account=new_account,
-                firstname=data.get('firstname'),
-                lastname=data.get('lastname'),
-                position=data.get('position', 'Staff')
-            )
-            
-        return Response({'message': 'MAO Administrator registered successfully!'}, status=status.HTTP_201_CREATED)
-
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
 def mao_farms_data(request):
     """
     Returns all registered farms and their latest hardware (sensor) status.
     """
-    user = request.user
-    if not user.role or user.role.role_name != 'mao':
-        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
-    
-    farms = Farm.objects.select_related('farmer', 'farmer__account').all()
+    latest_readings = SoilReading.objects.order_by('-recorded_at')
+    farms = Farm.objects.select_related('farmer', 'farmer__account').all().prefetch_related(
+        Prefetch('readings', queryset=latest_readings, to_attr='latest_reading_list')
+    )
     
     data = []
     for farm in farms:
-        latest = SoilReading.objects.filter(farm=farm).order_by('-recorded_at').first()
+        latest = farm.latest_reading_list[0] if farm.latest_reading_list else None
         status_label = 'Active' if latest else 'Inactive'
         
         data.append({
@@ -346,57 +367,15 @@ def mao_farms_data(request):
     return Response(data)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_mao(request):
-    """
-    SuperAdmin Endpoint to list all MAO Administrators.
-    """
-    user = request.user
-    if not user.is_superuser:
-        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
-
-    mao_accounts = MaoStaff.objects.select_related('account').all()
-    data = []
-    for mao in mao_accounts:
-        data.append({
-            'id': mao.account.id,
-            'control_id': mao.account.username,
-            'firstname': mao.firstname,
-            'lastname': mao.lastname,
-            'position': mao.position,
-        })
-    return Response(data)
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def delete_mao(request, account_id):
-    """
-    SuperAdmin Endpoint to delete an MAO Administrator account.
-    """
-    user = request.user
-    if not user.is_superuser:
-        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
-
-    try:
-        account = Account.objects.get(id=account_id, is_superuser=False)
-        account.delete()
-        return Response({'message': 'MAO account deleted successfully.'}, status=status.HTTP_200_OK)
-    except Account.DoesNotExist:
-        return Response({'error': 'Account not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
 def list_farmers(request):
     """
     MAO Endpoint to list all registered Farmers.
     """
-    user = request.user
-    if not user.role or user.role.role_name != 'mao':
-        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
-
-    farmers = Farmer.objects.select_related('account').all()
+    farmers = Farmer.objects.select_related('account').prefetch_related('farms').all()
     data = []
     for farmer in farmers:
+        farm = farmer.farms.first()
         data.append({
             'id': farmer.account.id,
             'farmer_id': farmer.farmer_id,
@@ -405,19 +384,18 @@ def list_farmers(request):
             'lastname': farmer.lastname,
             'barangay': farmer.barangay,
             'contact_number': farmer.contact_number,
+            'email': farmer.email,
+            'farm_location': farm.location if farm else 'N/A',
+            'farm_area_sqm': farm.total_area_sqm if farm else 'N/A',
         })
     return Response(data)
 
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
 def delete_farmer(request, account_id):
     """
     MAO Endpoint to delete a Farmer account (cascades to Farmer profile and Farms).
     """
-    user = request.user
-    if not user.role or user.role.role_name != 'mao':
-        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
-
     try:
         account = Account.objects.get(id=account_id)
         account.delete()
@@ -425,3 +403,16 @@ def delete_farmer(request, account_id):
     except Account.DoesNotExist:
         return Response({'error': 'Account not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
+def unregister_farm(request, farm_id):
+    """
+    MAO Endpoint to unregister a Farm (Hardware) from a Farmer.
+    This also cascades to delete the SoilReadings associated with this Farm.
+    """
+    try:
+        farm = Farm.objects.get(farm_id=farm_id)
+        farm.delete()
+        return Response({'message': 'Hardware unregistered successfully.'}, status=status.HTTP_200_OK)
+    except Farm.DoesNotExist:
+        return Response({'error': 'Hardware not found.'}, status=status.HTTP_404_NOT_FOUND)
