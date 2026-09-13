@@ -18,7 +18,7 @@ def login_view(request):
     """
     ERD-compliant Login Endpoint.
     """
-    username = request.data.get('controlId') # Reusing controlId from React as username
+    username = request.data.get('controlId') 
     password = request.data.get('password')
 
     try:
@@ -85,13 +85,11 @@ def iot_data_ingest(request):
         status=status_obj
     )
 
-    # Store the full fertilizer details including action_plan in description
     fert, _ = Fertilizer.objects.get_or_create(
         fertilizer_name=fert_name,
         nutrient_type=nutrient,
         defaults={'description': action_plan}
     )
-    # Always update description to latest action_plan
     if fert.description != action_plan:
         fert.description = action_plan
         fert.save()
@@ -153,18 +151,14 @@ def register_farmer(request):
         password = data.get('password')
         contact_number = data.get('contact_number')
         
-        # Validation
         if not contact_number or not contact_number.isdigit() or len(contact_number) < 10:
             return Response({'error': 'Invalid contact number format.'}, status=status.HTTP_400_BAD_REQUEST)
         if not password or len(password) < 8:
             return Response({'error': 'Password must be at least 8 characters long.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # We wrap this in transaction.atomic() so if Farm creation fails, Account isn't created.
         with transaction.atomic():
-            # 1. Ensure Farmer Role exists
             farmer_role = Role.objects.get(role_name='farmer')
             
-            # 2. Create Account
             if Account.objects.filter(username=control_id).exists():
                 return Response({'error': 'Control ID already exists!'}, status=status.HTTP_400_BAD_REQUEST)
                 
@@ -174,7 +168,6 @@ def register_farmer(request):
                 role=farmer_role
             )
             
-            # 3. Create Farmer Profile
             farmer_profile = Farmer.objects.create(
                 account=new_account,
                 firstname=data.get('firstname'),
@@ -268,20 +261,23 @@ def mao_dashboard_data(request):
     total_farmers = Farmer.objects.count()
     active_farms = Farm.objects.count()
     
-    critical_readings = SoilReading.objects.exclude(status__status_name='Optimal').count()
-    
-    # Optimize N+1 Query — include recommendations
     latest_readings = SoilReading.objects.select_related('status').prefetch_related(
         'recommendations__fertilizer'
     ).order_by('-recorded_at')
+    
     farms = Farm.objects.select_related('farmer', 'farmer__account').all().prefetch_related(
         Prefetch('readings', queryset=latest_readings, to_attr='latest_reading_list')
-    )[:10]
+    )
 
     farmer_statuses = []
+    critical_fields_count = 0
+    
     for farm in farms:
         latest = farm.latest_reading_list[0] if farm.latest_reading_list else None
         if latest:
+            if latest.status and latest.status.status_name != 'Optimal':
+                critical_fields_count += 1
+                
             rec = latest.recommendations.first()
             farmer_statuses.append({
                 'control_id': farm.farmer.account.username,
@@ -301,7 +297,7 @@ def mao_dashboard_data(request):
         'stats': {
             'total_farmers': total_farmers,
             'active_sensors': active_farms,
-            'critical_fields': critical_readings,
+            'critical_fields': critical_fields_count,
         },
         'recent_statuses': farmer_statuses
     })

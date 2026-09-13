@@ -10,7 +10,7 @@ const MaoDevices = () => {
     const [loading, setLoading] = useState(true);
     const [farmerList, setFarmerList] = useState([]);
     
-    // Hardware Registration State
+    
     const [formData, setFormData] = useState({
         farmer_id: '',
         farm_location: '',

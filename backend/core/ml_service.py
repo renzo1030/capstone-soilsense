@@ -15,8 +15,6 @@ def load_model():
         _model = joblib.load(model_path)
     return _model
 
-# Detailed mapping for the model's 7 output fertilizer classes:
-# 'Compost', 'DAP', 'MOP', 'NPK', 'SSP', 'Urea', 'Zinc Sulphate'
 FERTILIZER_DETAILS = {
     'Urea': {
         'condition': 'Low Nitrogen',
@@ -69,16 +67,39 @@ FERTILIZER_DETAILS = {
     }
 }
 
+def classify_ph_level(ph):
+    """
+    Classifies pH into a human-readable label for the dashboard.
+    Based on standard agricultural soil pH ranges for rice cultivation.
+    """
+    ph = float(ph)
+    if ph < 4.5:
+        return "Highly Acidic"
+    elif ph < 5.5:
+        return "Acidic"
+    elif ph < 6.0:
+        return "Slightly Acidic"
+    elif ph <= 7.0:
+        return "Optimal"
+    elif ph <= 7.5:
+        return "Slightly Alkaline"
+    elif ph <= 8.5:
+        return "Alkaline"
+    else:
+        return "Highly Alkaline"
+
+
 def predict_soil_condition(nitrogen, phosphorus, potassium, ph, moisture):
     """
     Predicts soil condition, action plan, and recommended fertilizer details using the ML model.
     Returns:
         tuple: (condition, action_plan, fertilizer_name, nutrient_type, recommended_amount_kg)
     """
+    ph_label = classify_ph_level(ph)
+
     try:
         model = load_model()
         
-        # Features: ['Nitrogen_Level', 'Phosphorus_Level', 'Potassium_Level', 'Soil_pH', 'Soil_Moisture']
         df = pd.DataFrame([{
             'Nitrogen_Level': float(nitrogen),
             'Phosphorus_Level': float(phosphorus),
@@ -91,24 +112,56 @@ def predict_soil_condition(nitrogen, phosphorus, potassium, ph, moisture):
         details = FERTILIZER_DETAILS.get(predicted_fert)
         
         if details:
+            condition = details['condition']
+            action_plan = details['action_plan']
+            fert_name = details['fertilizer_name']
+            nutrient = details['nutrient_type']
+            amount = details['recommended_amount_kg']
+            
+            if float(moisture) <= 10.0:
+                condition = f"{condition} & Critically Dry"
+                action_plan = f"Soil moisture is dangerously low ({moisture}%). Irrigate immediately before applying fertilizer! " + action_plan
+
+            
+            if nutrient == "Nitrogen" and float(ph) > 7.5:
+                fert_name = "Ammonium Sulfate (21-0-0)"
+                action_plan = (
+                    f"Apply {fert_name} to replenish Nitrogen. "
+                    f"[SYSTEM OVERRIDE]: Soil is highly alkaline (pH {ph}). Urea recommendation canceled to prevent ammonia gas loss and root toxicity."
+                )
+                
+            elif float(ph) < 5.0:
+                original_fert = fert_name
+                fert_name = f"Agricultural Lime + {original_fert}"
+                action_plan = (
+                    f"IMMEDIATE ACTION: Apply Agricultural Lime to neutralize extreme acidity (pH {ph}). "
+                    f"Wait 2 weeks, then apply {original_fert}."
+                )
+                condition = f"Critical Acidity & {condition}"
+
+            if float(moisture) >= 90:
+                action_plan += " WARNING: Field is completely waterlogged. Ensure proper drainage immediately to prevent root rot."
+
+            # Append pH level label to condition for the dashboard
+            condition = f"{condition} | pH: {ph_label}"
+
             return (
-                details['condition'],
-                details['action_plan'],
-                details['fertilizer_name'],
-                details['nutrient_type'],
-                details['recommended_amount_kg']
+                condition,
+                action_plan,
+                fert_name,
+                nutrient,
+                amount
             )
     except Exception as e:
-        # Fallback to rule-based logic in case model fails to load/predict
         print(f"ML Prediction failed, using fallback rule-based system: {e}")
         
-    # Heuristic Fallback
     if float(ph) < 5.5:
-        return ("High Acidity", "Apply Agricultural Lime (15 bags/ha) to stabilize pH.", "Agricultural Lime", "pH Balancer", 15.0)
+        return (f"High Acidity | pH: {ph_label}", "Apply Agricultural Lime (15 bags/ha) to stabilize pH.", "Agricultural Lime", "pH Balancer", 15.0)
     elif float(moisture) < 40.0:
-        return ("Low Moisture", "Increase water supply to reach optimal 50-60% moisture.", "Urea (46-0-0)", "Nitrogen", 10.0)
+        return (f"Low Moisture | pH: {ph_label}", "Increase water supply to reach optimal 50-60% moisture.", "Urea (46-0-0)", "Nitrogen", 10.0)
     elif float(nitrogen) < 18.0:
-        return ("Low Nitrogen", "Apply Urea (46-0-0) to replenish Nitrogen levels.", "Urea (46-0-0)", "Nitrogen", 15.0)
+        return (f"Low Nitrogen | pH: {ph_label}", "Apply Urea (46-0-0) to replenish Nitrogen levels.", "Urea (46-0-0)", "Nitrogen", 15.0)
     else:
-        return ("Optimal", "Soil is in great condition. Continue current monitoring.", "Urea (46-0-0)", "Nitrogen", 5.0)
+        return (f"Optimal | pH: {ph_label}", "Soil is in great condition. Continue current monitoring.", "Urea (46-0-0)", "Nitrogen", 5.0)
+
 

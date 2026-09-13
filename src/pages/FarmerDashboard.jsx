@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Droplets, Beaker, Sprout, Wind, Activity } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { API_BASE_URL, THRESHOLDS } from '../config';
 
@@ -102,8 +103,33 @@ const FarmerDashboard = () => {
             </>
         );
     }
-    if (!data) return null;
-    const r = data.latest_reading;
+
+    const r = data?.latest_reading;
+
+    if (!r) {
+        return (
+            <>
+                <Sidebar role="farmer" />
+                <main className="content">
+                    <header className="dashboard-header">
+                        <div>
+                            <h1>{data.farm_location}</h1>
+                            <p>Welcome back, <strong>{data.farmer_name}</strong> (#{data.control_id})</p>
+                            <p className="crop-indicator">🌾 Current Crop: Rice</p>
+                        </div>
+                    </header>
+                    <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--surface)', borderRadius: 'var(--card-radius)', border: '1px solid rgba(255, 255, 255, 0.5)', marginTop: '40px' }}>
+                        <Activity size={64} style={{ color: 'var(--text-light)', marginBottom: '20px', opacity: 0.5 }} />
+                        <h2 style={{ color: 'var(--text-dark)', marginBottom: '12px', fontSize: '1.8rem' }}>No Sensor Data Yet</h2>
+                        <p style={{ color: 'var(--text-light)', maxWidth: '450px', margin: '0 auto', fontSize: '1.1rem' }}>
+                            Waiting for your IoT device to send its first reading. Please ensure the device is powered on, connected to a network, and placed in the soil.
+                        </p>
+                    </div>
+                </main>
+            </>
+        );
+    }
+
     return (
         <>
             <Sidebar role="farmer" />
@@ -114,45 +140,82 @@ const FarmerDashboard = () => {
                         <p>Welcome back, <strong>{data.farmer_name}</strong> (#{data.control_id})</p>
                         <p className="crop-indicator">🌾 Current Crop: Rice</p>
                     </div>
-                    <div className="badge">Live Monitoring</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px' }}>
+                        <div className="badge" style={{ marginBottom: 0 }}>Live Monitoring</div>
+                        <button className="btn-header" onClick={handleDownloadReport}>
+                            ⬇ Download Report
+                        </button>
+                    </div>
                 </header>
                 <div className="dashboard-stats">
                     <div className="stat-box">
-                        <h4>Nitrogen (N)</h4>
-                        <div className={`value ${!r ? '' : (r.nitrogen < THRESHOLDS.nitrogen.low ? 'text-danger' : 'text-success')}`}>{r?.nitrogen ?? '--'}</div>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                            <Sprout size={18} className="text-secondary" />
+                            <h4 style={{ marginBottom: 0 }}>Nitrogen (N)</h4>
+                        </div>
+                        <div className={`value ${r.nitrogen < THRESHOLDS.nitrogen.low ? 'text-danger' : 'text-success'}`}>{r.nitrogen}</div>
                         <span className="unit">mg/kg</span>
                     </div>
                     <div className="stat-box">
-                        <h4>Phosphorus (P)</h4>
-                        <div className={`value ${!r ? '' : (r.phosphorus < THRESHOLDS.phosphorus.low ? 'text-danger' : 'text-success')}`}>{r?.phosphorus ?? '--'}</div>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                            <Sprout size={18} className="text-secondary" />
+                            <h4 style={{ marginBottom: 0 }}>Phosphorus (P)</h4>
+                        </div>
+                        <div className={`value ${r.phosphorus < THRESHOLDS.phosphorus.low ? 'text-danger' : 'text-success'}`}>{r.phosphorus}</div>
                         <span className="unit">mg/kg</span>
                     </div>
                     <div className="stat-box">
-                        <h4>Potassium (K)</h4>
-                        <div className={`value ${!r ? '' : (r.potassium < THRESHOLDS.potassium.low ? 'text-danger' : 'text-success')}`}>{r?.potassium ?? '--'}</div>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                            <Sprout size={18} className="text-secondary" />
+                            <h4 style={{ marginBottom: 0 }}>Potassium (K)</h4>
+                        </div>
+                        <div className={`value ${r.potassium < THRESHOLDS.potassium.low ? 'text-danger' : 'text-success'}`}>{r.potassium}</div>
                         <span className="unit">mg/kg</span>
                     </div>
                     <div className="stat-box">
-                        <h4>Soil pH</h4>
-                        <div className={`value ${!r ? '' : (r.ph < THRESHOLDS.ph.low || r.ph > THRESHOLDS.ph.high ? 'text-danger' : 'text-success')}`}>{r?.ph ?? '--'}</div>
-                        <span className="unit">{!r ? '--' : (r.ph < THRESHOLDS.ph.low ? 'Acidic' : (r.ph > THRESHOLDS.ph.high ? 'Alkaline' : 'Optimal'))}</span>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                            <Beaker size={18} className="text-secondary" />
+                            <h4 style={{ marginBottom: 0 }}>Soil pH</h4>
+                        </div>
+                        <div className={`value ${r.ph < THRESHOLDS.ph.low || r.ph > THRESHOLDS.ph.high ? 'text-danger' : 'text-success'}`}>{r.ph}</div>
+                        <span className="unit">{r.ph < THRESHOLDS.ph.low ? 'Acidic' : (r.ph > THRESHOLDS.ph.high ? 'Alkaline' : 'Optimal')}</span>
                     </div>
                     <div className="stat-box">
-                        <h4>Moisture</h4>
-                        <div className={`value ${!r ? '' : (r.moisture < THRESHOLDS.moisture.low ? 'text-warning' : 'text-success')}`}>{r?.moisture ?? '--'}</div>
-                        <span className="unit">{!r ? '%' : (r.moisture < THRESHOLDS.moisture.low ? '% (Low)' : '%')}</span>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                            <Droplets size={18} className="text-secondary" />
+                            <h4 style={{ marginBottom: 0 }}>Moisture</h4>
+                        </div>
+                        <div className={`value ${r.moisture < THRESHOLDS.moisture.low ? 'text-warning' : 'text-success'}`}>{r.moisture}</div>
+                        <span className="unit">{r.moisture < THRESHOLDS.moisture.low ? '% (Low)' : '%'}</span>
                     </div>
                 </div>
 
-                {/* ML Classification Status */}
+                {/* Parse condition and pH level from backend (format: "Condition | pH: Level") */}
                 <div className="table-container mb-40">
                     <h3 className="section-title">Condition Status</h3>
-                    <div className={`status-badge status-badge-lg ${!r ? '' : (r.condition === 'Optimal' ? 'badge-optimal' : 'badge-warning-alt')}`}>
-                        Machine Learning Classification: <strong>{r?.condition ?? 'Awaiting Data'}</strong>
-                    </div>
+                    {(() => {
+                        const conditionStr = r?.condition ?? 'Awaiting Data';
+                        const parts = conditionStr.split(' | pH: ');
+                        const soilCondition = parts[0];
+                        const phLevel = parts[1] || null;
+                        const isOptimalSoil = soilCondition === 'Optimal';
+                        const isOptimalPh = phLevel === 'Optimal';
+                        return (
+                            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                <div className={`status-badge status-badge-lg ${isOptimalSoil ? 'badge-optimal' : 'badge-warning-alt'}`}>
+                                    Soil Condition: <strong>{soilCondition}</strong>
+                                </div>
+                                {phLevel && (
+                                    <div className={`status-badge status-badge-lg ${isOptimalPh ? 'badge-optimal' : 'badge-warning-alt'}`}>
+                                        pH Level: <strong>{phLevel}</strong>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
                 </div>
 
-                {/* ML Fertilizer Recommendation Card */}
+                {}
                 <div className="rec-card">
                     <span className="badge">Random Forest Model</span>
                     <div className="rec-header">
@@ -160,35 +223,31 @@ const FarmerDashboard = () => {
                     </div>
                     <p>Based on your latest reading ({r?.recorded_at ? new Date(r.recorded_at).toLocaleString() : 'N/A'}):</p>
 
-                    {/* Fertilizer Info */}
+                    {}
                     <div className="dashboard-stats" style={{ marginTop: '16px', marginBottom: '8px' }}>
                         <div className="stat-box">
                             <h4>Recommended Fertilizer</h4>
-                            <div className={`value ${!r ? '' : 'text-success'}`} style={{ fontSize: '1.1rem' }}>{r?.fertilizer_name ?? '--'}</div>
+                            <div className="value text-success text-display-md">{r.fertilizer_name}</div>
                             <span className="unit">ML Prediction</span>
                         </div>
                         <div className="stat-box">
                             <h4>Nutrient Type</h4>
-                            <div className={`value ${!r ? '' : 'text-warning'}`} style={{ fontSize: '1.1rem' }}>{r?.nutrient_type ?? '--'}</div>
+                            <div className="value text-warning text-display-md">{r.nutrient_type}</div>
                             <span className="unit">Deficiency Type</span>
                         </div>
                         <div className="stat-box">
                             <h4>Amount to Apply</h4>
-                            <div className={`value ${!r ? '' : 'text-danger'}`} style={{ fontSize: '1.4rem' }}>{r?.recommended_amount_kg ?? '--'}</div>
+                            <div className="value text-danger text-display-lg">{r.recommended_amount_kg}</div>
                             <span className="unit">kg / hectare</span>
                         </div>
                     </div>
 
-                    {/* Action Plan from ML */}
+                    {}
                     <div className="action-list">
                         <ul>
-                            <li>{r?.action_plan ?? 'Waiting for IoT device to connect and send the first reading...'}</li>
+                            <li>{r.action_plan}</li>
                         </ul>
                     </div>
-
-                    <button className="btn-submit btn-submit-auto" onClick={handleDownloadReport} disabled={!r}>
-                        ⬇ Download Report
-                    </button>
                 </div>
             </main>
         </>

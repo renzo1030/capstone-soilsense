@@ -268,7 +268,7 @@ const MaoRegisterFarmer = () => {
                     </form>
                 </div>
 
-                {/* Farmer List */}
+                {}
                 <div className="table-container mt-30">
                     <div className="flex-between-mb16">
                         <h3 className="section-title m-0">Registered Farmers</h3>

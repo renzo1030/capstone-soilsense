@@ -1,5 +1,5 @@
-// Centralized Configuration for SoilSense
-// Change these values in ONE place instead of hunting through multiple files.
+
+
 
 export const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
@@ -9,7 +9,7 @@ export const MUNICIPALITY = {
     officeName: 'Unisan Agriculture Office',
 };
 
-// Soil health thresholds used for color-coding and recommendations
+
 export const THRESHOLDS = {
     nitrogen: { low: 20 },
     phosphorus: { low: 20 },

@@ -104,7 +104,6 @@ const MaoHistory = () => {
                             <label style={{ fontSize: '0.9rem', color: 'var(--text-light)', fontWeight: '600' }}>Filter by Farmer:</label>
                             <select 
                                 className="select-input" 
-                                style={{ padding: '8px 12px', minWidth: '200px' }}
                                 value={selectedFarmer}
                                 onChange={(e) => setSelectedFarmer(e.target.value)}
                             >
