@@ -348,14 +348,15 @@ const MaoDevices = () => {
                             <div className="grid-auto-fit-250">
                                 <div className="form-group m-0">
                                     <label>Select Farmer</label>
-                                    <div className="input-icon-wrapper">
-                                        <User className="input-icon" size={20} />
+                                    <div className="relative w-full">
+                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
                                         <select
                                             name="farmer_id"
                                             value={farmFormData.farmer_id}
                                             onChange={handleFarmChange}
                                             required
-                                            className="select-input"
+                                            className="select-input w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                            style={{ paddingLeft: '2.75rem' }}
                                         >
                                             <option value="" disabled>Select a registered farmer</option>
                                             {farmerList.map(farmer => (
@@ -368,16 +369,34 @@ const MaoDevices = () => {
                                 </div>
                                 <div className="form-group m-0">
                                     <label>Farm Location</label>
-                                    <div className="input-icon-wrapper">
-                                        <MapPin className="input-icon" size={20} />
-                                        <input type="text" name="farm_location" value={farmFormData.farm_location} onChange={handleFarmChange} required placeholder="e.g., Brgy. San Jose Lot A" />
+                                    <div className="relative w-full">
+                                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                                        <input 
+                                            type="text" 
+                                            name="farm_location" 
+                                            value={farmFormData.farm_location} 
+                                            onChange={handleFarmChange} 
+                                            required 
+                                            placeholder="e.g., Brgy. San Jose Lot A"
+                                            className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                            style={{ paddingLeft: '2.75rem' }}
+                                        />
                                     </div>
                                 </div>
                                 <div className="form-group m-0">
                                     <label>Total Area (Square Meters)</label>
-                                    <div className="input-icon-wrapper">
-                                        <MapPin className="input-icon" size={20} />
-                                        <input type="number" name="farm_area_sqm" value={farmFormData.farm_area_sqm} onChange={handleFarmChange} required placeholder="e.g., 10000" />
+                                    <div className="relative w-full">
+                                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                                        <input 
+                                            type="number" 
+                                            name="farm_area_sqm" 
+                                            value={farmFormData.farm_area_sqm} 
+                                            onChange={handleFarmChange} 
+                                            required 
+                                            placeholder="e.g., 10000"
+                                            className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                            style={{ paddingLeft: '2.75rem' }}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -407,27 +426,45 @@ const MaoDevices = () => {
                             <div className="grid-auto-fit-250">
                                 <div className="form-group m-0">
                                     <label>Device UID (MAC / Serial)</label>
-                                    <div className="input-icon-wrapper">
-                                        <Cpu className="input-icon" size={20} />
-                                        <input type="text" name="device_uid" value={deviceFormData.device_uid} onChange={handleDeviceChange} required placeholder="e.g., AA:BB:CC:DD:EE:FF" />
+                                    <div className="relative w-full">
+                                        <Cpu className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                                        <input 
+                                            type="text" 
+                                            name="device_uid" 
+                                            value={deviceFormData.device_uid} 
+                                            onChange={handleDeviceChange} 
+                                            required 
+                                            placeholder="e.g., AA:BB:CC:DD:EE:FF"
+                                            className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                            style={{ paddingLeft: '2.75rem' }}
+                                        />
                                     </div>
                                 </div>
                                 <div className="form-group m-0">
                                     <label>Device Name</label>
-                                    <div className="input-icon-wrapper">
-                                        <Cpu className="input-icon" size={20} />
-                                        <input type="text" name="device_name" value={deviceFormData.device_name} onChange={handleDeviceChange} placeholder="e.g., SoilSense Probe #1" />
+                                    <div className="relative w-full">
+                                        <Cpu className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                                        <input 
+                                            type="text" 
+                                            name="device_name" 
+                                            value={deviceFormData.device_name} 
+                                            onChange={handleDeviceChange} 
+                                            placeholder="e.g., SoilSense Probe #1"
+                                            className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                            style={{ paddingLeft: '2.75rem' }}
+                                        />
                                     </div>
                                 </div>
                                 <div className="form-group m-0">
                                     <label>Assign to Farm</label>
-                                    <div className="input-icon-wrapper">
-                                        <MapPin className="input-icon" size={20} />
+                                    <div className="relative w-full">
+                                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
                                         <select
                                             name="farm_id"
                                             value={deviceFormData.farm_id}
                                             onChange={handleDeviceChange}
-                                            className="select-input"
+                                            className="select-input w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                            style={{ paddingLeft: '2.75rem' }}
                                         >
                                             <option value="">No assignment (register only)</option>
                                             {farmList.map(farm => (

@@ -175,14 +175,17 @@ body {
     color: var(--primary);
     transform: translateX(5px);
 }
+.sidebar .nav-links li a.active,
 .nav-links a.active {
-    background: var(--primary);
-    color: var(--white);
-    box-shadow: var(--shadow-md), var(--shadow-glow);
-    font-weight: 600;
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.25) !important;
+    font-weight: 600 !important;
 }
+.sidebar .nav-links li a.active:hover,
 .nav-links a.active:hover {
     transform: none;
+    color: #ffffff !important;
 }
 .sidebar .logout-link,
 .logout-link {
@@ -239,39 +242,26 @@ body {
     margin-bottom: 40px;
 }
 .stat-box {
-    background: var(--surface);
-    backdrop-filter: blur(10px);
-    border-radius: var(--card-radius);
-    box-shadow: var(--shadow-md);
-    padding: 32px;
-    text-align: center;
-    transition: var(--transition);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-bottom: 5px solid var(--primary);
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    border: 1px solid #f1f5f9;
     display: flex;
     flex-direction: column;
     justify-content: center;
     position: relative;
-    overflow: hidden;
-}
-.stat-box::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 60%);
-    opacity: 0;
-    transition: var(--transition);
-    pointer-events: none;
+    cursor: default !important; /* Informational only — not clickable */
+    user-select: none;
+    transform: none !important;
+    transition: none !important;
 }
 .stat-box:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    transform: none !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
 }
-.stat-box:hover::after {
-    opacity: 1;
+.stat-box::after {
+    display: none !important;
 }
 .stat-box h4 {
     margin-bottom: 12px;

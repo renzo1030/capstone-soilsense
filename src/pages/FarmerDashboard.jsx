@@ -148,7 +148,7 @@ const FarmerDashboard = () => {
                     </div>
                 </header>
                 <div className="dashboard-stats">
-                    <div className="stat-box">
+                    <div className="stat-box bg-white border border-gray-100 rounded-xl shadow-sm p-4 cursor-default select-none">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                             <Sprout size={20} className="text-secondary" />
                             <h4 style={{ margin: 0 }}>Nitrogen (N)</h4>
@@ -158,7 +158,7 @@ const FarmerDashboard = () => {
                             <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>mg/kg</span>
                         </div>
                     </div>
-                    <div className="stat-box">
+                    <div className="stat-box bg-white border border-gray-100 rounded-xl shadow-sm p-4 cursor-default select-none">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                             <Sprout size={20} className="text-secondary" />
                             <h4 style={{ margin: 0 }}>Phosphorus (P)</h4>
@@ -168,7 +168,7 @@ const FarmerDashboard = () => {
                             <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>mg/kg</span>
                         </div>
                     </div>
-                    <div className="stat-box">
+                    <div className="stat-box bg-white border border-gray-100 rounded-xl shadow-sm p-4 cursor-default select-none">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                             <Sprout size={20} className="text-secondary" />
                             <h4 style={{ margin: 0 }}>Potassium (K)</h4>
@@ -178,7 +178,7 @@ const FarmerDashboard = () => {
                             <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>mg/kg</span>
                         </div>
                     </div>
-                    <div className="stat-box">
+                    <div className="stat-box bg-white border border-gray-100 rounded-xl shadow-sm p-4 cursor-default select-none">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                             <Beaker size={20} className="text-secondary" />
                             <h4 style={{ margin: 0 }}>Soil pH</h4>
@@ -190,7 +190,7 @@ const FarmerDashboard = () => {
                             </span>
                         </div>
                     </div>
-                    <div className="stat-box">
+                    <div className="stat-box bg-white border border-gray-100 rounded-xl shadow-sm p-4 cursor-default select-none">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                             <Droplets size={20} className="text-secondary" />
                             <h4 style={{ margin: 0 }}>Moisture</h4>

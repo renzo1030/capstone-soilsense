@@ -37,16 +37,20 @@ const Sidebar = ({ role }) => {
             <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
                 <Link to={links[0].path} className="logo">Soil<span>Sense</span></Link>
             <ul className="nav-links">
-                {links.map((link) => (
-                    <li key={link.path}>
-                        <Link 
-                            to={link.path} 
-                            className={location.pathname === link.path ? 'active' : ''}
-                        >
-                            {link.label}
-                        </Link>
-                    </li>
-                ))}
+                {links.map((link) => {
+                    const isActive = location.pathname === link.path;
+                    return (
+                        <li key={link.path}>
+                            <Link 
+                                to={link.path} 
+                                className={isActive ? 'active bg-emerald-600 text-white font-semibold shadow-sm' : 'text-gray-600 hover:bg-gray-100'}
+                                style={isActive ? { color: '#ffffff', backgroundColor: '#059669' } : {}}
+                            >
+                                {link.label}
+                            </Link>
+                        </li>
+                    );
+                })}
                 <li><Link to="/logout" className="logout-link">Logout</Link></li>
             </ul>
             </aside>

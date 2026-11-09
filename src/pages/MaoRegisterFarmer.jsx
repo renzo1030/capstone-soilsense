@@ -210,16 +210,34 @@ const MaoRegisterFarmer = () => {
                             </div>
                             <div className="form-group">
                                 <label>Control ID (Username)</label>
-                                <div className="input-icon-wrapper">
-                                    <Hash className="input-icon" size={20} />
-                                    <input type="text" name="control_id" value={formData.control_id} onChange={handleChange} required placeholder="e.g., FARMER002" />
+                                <div className="relative w-full">
+                                    <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                                    <input 
+                                        type="text" 
+                                        name="control_id" 
+                                        value={formData.control_id} 
+                                        onChange={handleChange} 
+                                        required 
+                                        placeholder="e.g., FARMER002"
+                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                        style={{ paddingLeft: '2.75rem' }}
+                                    />
                                 </div>
                             </div>
                             <div className="form-group">
                                 <label>Temporary Password</label>
-                                <div className="input-icon-wrapper">
-                                    <UserPlus className="input-icon" size={20} />
-                                    <input type="password" name="password" value={formData.password} onChange={handleChange} required placeholder="Secure Password" />
+                                <div className="relative w-full">
+                                    <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                                    <input 
+                                        type="password" 
+                                        name="password" 
+                                        value={formData.password} 
+                                        onChange={handleChange} 
+                                        required 
+                                        placeholder="Secure Password"
+                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                        style={{ paddingLeft: '2.75rem' }}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -232,30 +250,66 @@ const MaoRegisterFarmer = () => {
                             </div>
                             <div className="form-group">
                                 <label>First Name</label>
-                                <div className="input-icon-wrapper">
-                                    <User className="input-icon" size={20} />
-                                    <input type="text" name="firstname" value={formData.firstname} onChange={handleChange} required placeholder="Juan" />
+                                <div className="relative w-full">
+                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                                    <input 
+                                        type="text" 
+                                        name="firstname" 
+                                        value={formData.firstname} 
+                                        onChange={handleChange} 
+                                        required 
+                                        placeholder="Juan"
+                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                        style={{ paddingLeft: '2.75rem' }}
+                                    />
                                 </div>
                             </div>
                             <div className="form-group">
                                 <label>Last Name</label>
-                                <div className="input-icon-wrapper">
-                                    <User className="input-icon" size={20} />
-                                    <input type="text" name="lastname" value={formData.lastname} onChange={handleChange} required placeholder="Dela Cruz" />
+                                <div className="relative w-full">
+                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                                    <input 
+                                        type="text" 
+                                        name="lastname" 
+                                        value={formData.lastname} 
+                                        onChange={handleChange} 
+                                        required 
+                                        placeholder="Dela Cruz"
+                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                        style={{ paddingLeft: '2.75rem' }}
+                                    />
                                 </div>
                             </div>
                             <div className="form-group">
                                 <label>Contact Number</label>
-                                <div className="input-icon-wrapper">
-                                    <Phone className="input-icon" size={20} />
-                                    <input type="text" name="contact_number" value={formData.contact_number} onChange={handleChange} required placeholder="09xxxxxxxxx" />
+                                <div className="relative w-full">
+                                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                                    <input 
+                                        type="text" 
+                                        name="contact_number" 
+                                        value={formData.contact_number} 
+                                        onChange={handleChange} 
+                                        required 
+                                        placeholder="09xxxxxxxxx"
+                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                        style={{ paddingLeft: '2.75rem' }}
+                                    />
                                 </div>
                             </div>
                             <div className="form-group">
                                 <label>Barangay</label>
-                                <div className="input-icon-wrapper">
-                                    <MapPin className="input-icon" size={20} />
-                                    <input type="text" name="barangay" value={formData.barangay} onChange={handleChange} required placeholder="San Jose" />
+                                <div className="relative w-full">
+                                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                                    <input 
+                                        type="text" 
+                                        name="barangay" 
+                                        value={formData.barangay} 
+                                        onChange={handleChange} 
+                                        required 
+                                        placeholder="San Jose"
+                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                        style={{ paddingLeft: '2.75rem' }}
+                                    />
                                 </div>
                             </div>
                         </div>
