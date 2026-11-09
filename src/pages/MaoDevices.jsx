@@ -356,7 +356,6 @@ const MaoDevices = () => {
                                             onChange={handleFarmChange}
                                             required
                                             className="select-input"
-                                            style={{ paddingLeft: '40px' }}
                                         >
                                             <option value="" disabled>Select a registered farmer</option>
                                             {farmerList.map(farmer => (
@@ -429,7 +428,6 @@ const MaoDevices = () => {
                                             value={deviceFormData.farm_id}
                                             onChange={handleDeviceChange}
                                             className="select-input"
-                                            style={{ paddingLeft: '40px' }}
                                         >
                                             <option value="">No assignment (register only)</option>
                                             {farmList.map(farm => (

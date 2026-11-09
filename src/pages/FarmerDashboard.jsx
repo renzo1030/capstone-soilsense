@@ -149,100 +149,143 @@ const FarmerDashboard = () => {
                 </header>
                 <div className="dashboard-stats">
                     <div className="stat-box">
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                            <Sprout size={18} className="text-secondary" />
-                            <h4 style={{ marginBottom: 0 }}>Nitrogen (N)</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <Sprout size={20} className="text-secondary" />
+                            <h4 style={{ margin: 0 }}>Nitrogen (N)</h4>
                         </div>
-                        <div className={`value ${r.nitrogen < THRESHOLDS.nitrogen.low ? 'text-danger' : 'text-success'}`}>{r.nitrogen}</div>
-                        <span className="unit">mg/kg</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                            <span className={`text-3xl font-bold ${r.nitrogen < THRESHOLDS.nitrogen.low ? 'text-danger' : 'text-success'}`}>{r.nitrogen}</span>
+                            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>mg/kg</span>
+                        </div>
                     </div>
                     <div className="stat-box">
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                            <Sprout size={18} className="text-secondary" />
-                            <h4 style={{ marginBottom: 0 }}>Phosphorus (P)</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <Sprout size={20} className="text-secondary" />
+                            <h4 style={{ margin: 0 }}>Phosphorus (P)</h4>
                         </div>
-                        <div className={`value ${r.phosphorus < THRESHOLDS.phosphorus.low ? 'text-danger' : 'text-success'}`}>{r.phosphorus}</div>
-                        <span className="unit">mg/kg</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                            <span className={`text-3xl font-bold ${r.phosphorus < THRESHOLDS.phosphorus.low ? 'text-danger' : 'text-success'}`}>{r.phosphorus}</span>
+                            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>mg/kg</span>
+                        </div>
                     </div>
                     <div className="stat-box">
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                            <Sprout size={18} className="text-secondary" />
-                            <h4 style={{ marginBottom: 0 }}>Potassium (K)</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <Sprout size={20} className="text-secondary" />
+                            <h4 style={{ margin: 0 }}>Potassium (K)</h4>
                         </div>
-                        <div className={`value ${r.potassium < THRESHOLDS.potassium.low ? 'text-danger' : 'text-success'}`}>{r.potassium}</div>
-                        <span className="unit">mg/kg</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                            <span className={`text-3xl font-bold ${r.potassium < THRESHOLDS.potassium.low ? 'text-danger' : 'text-success'}`}>{r.potassium}</span>
+                            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>mg/kg</span>
+                        </div>
                     </div>
                     <div className="stat-box">
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                            <Beaker size={18} className="text-secondary" />
-                            <h4 style={{ marginBottom: 0 }}>Soil pH</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <Beaker size={20} className="text-secondary" />
+                            <h4 style={{ margin: 0 }}>Soil pH</h4>
                         </div>
-                        <div className={`value ${r.ph < THRESHOLDS.ph.low || r.ph > THRESHOLDS.ph.high ? 'text-danger' : 'text-success'}`}>{r.ph}</div>
-                        <span className="unit">{r.ph < THRESHOLDS.ph.low ? 'Acidic' : (r.ph > THRESHOLDS.ph.high ? 'Alkaline' : 'Optimal')}</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                            <span className={`text-3xl font-bold ${r.ph < THRESHOLDS.ph.low || r.ph > THRESHOLDS.ph.high ? 'text-danger' : 'text-success'}`}>{r.ph}</span>
+                            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>
+                                ({r.ph < THRESHOLDS.ph.low ? 'Acidic' : (r.ph > THRESHOLDS.ph.high ? 'Alkaline' : 'Optimal')})
+                            </span>
+                        </div>
                     </div>
                     <div className="stat-box">
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                            <Droplets size={18} className="text-secondary" />
-                            <h4 style={{ marginBottom: 0 }}>Moisture</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <Droplets size={20} className="text-secondary" />
+                            <h4 style={{ margin: 0 }}>Moisture</h4>
                         </div>
-                        <div className={`value ${r.moisture < THRESHOLDS.moisture.low ? 'text-warning' : 'text-success'}`}>{r.moisture}</div>
-                        <span className="unit">{r.moisture < THRESHOLDS.moisture.low ? '% (Low)' : '%'}</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                            <span className={`text-3xl font-bold ${r.moisture < THRESHOLDS.moisture.low ? 'text-warning' : 'text-success'}`}>{r.moisture}%</span>
+                            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>
+                                {r.moisture < THRESHOLDS.moisture.low ? '(Low)' : '(Adequate)'}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Parse condition and pH level from backend (format: "Condition | pH: Level") */}
-                <div className="table-container mb-40">
-                    <h3 className="section-title">Condition Status</h3>
+                {/* Modern Crisp Condition Status Alert */}
+                <div style={{ margin: '24px 0' }}>
                     {(() => {
                         const conditionStr = r?.condition ?? 'Awaiting Data';
                         const parts = conditionStr.split(' | pH: ');
                         const soilCondition = parts[0];
                         const phLevel = parts[1] || null;
-                        const isOptimalSoil = soilCondition === 'Optimal';
-                        const isOptimalPh = phLevel === 'Optimal';
+                        const isOptimal = soilCondition === 'Optimal';
                         return (
-                            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-                                <div className={`status-badge status-badge-lg ${isOptimalSoil ? 'badge-optimal' : 'badge-warning-alt'}`}>
-                                    Soil Condition: <strong>{soilCondition}</strong>
+                            <div 
+                                style={{
+                                    background: '#ffffff',
+                                    borderLeft: `5px solid ${isOptimal ? '#059669' : '#d97706'}`,
+                                    padding: '18px 24px',
+                                    borderRadius: '0 14px 14px 0',
+                                    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    flexWrap: 'wrap',
+                                    gap: '12px'
+                                }}
+                            >
+                                <div>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: '#64748b' }}>
+                                        Soil Health Evaluation
+                                    </span>
+                                    <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', marginTop: '2px' }}>
+                                        {soilCondition}
+                                    </div>
                                 </div>
                                 {phLevel && (
-                                    <div className={`status-badge status-badge-lg ${isOptimalPh ? 'badge-optimal' : 'badge-warning-alt'}`}>
-                                        pH Level: <strong>{phLevel}</strong>
-                                    </div>
+                                    <span 
+                                        style={{
+                                            background: isOptimal ? '#ecfdf5' : '#fffbeb',
+                                            color: isOptimal ? '#047857' : '#b45309',
+                                            padding: '6px 14px',
+                                            borderRadius: '8px',
+                                            fontSize: '0.88rem',
+                                            fontWeight: '600',
+                                            border: `1px solid ${isOptimal ? '#a7f3d0' : '#fde68a'}`
+                                        }}
+                                    >
+                                        pH Level: {phLevel}
+                                    </span>
                                 )}
                             </div>
                         );
                     })()}
                 </div>
 
-                {}
+                {/* Polished Fertilizer Recommendation Card */}
                 <div className="rec-card">
                     <span className="badge">Random Forest Model</span>
                     <div className="rec-header">
                         <h3>🌾 Fertilizer Recommendation</h3>
                     </div>
-                    <p>Based on your latest reading ({r?.recorded_at ? new Date(r.recorded_at).toLocaleString() : 'N/A'}):</p>
+                    <p style={{ color: '#64748b', fontSize: '0.95rem' }}>
+                        Based on your latest reading ({r?.recorded_at ? new Date(r.recorded_at).toLocaleString() : 'N/A'}):
+                    </p>
 
-                    {}
-                    <div className="dashboard-stats" style={{ marginTop: '16px', marginBottom: '8px' }}>
-                        <div className="stat-box">
-                            <h4>Recommended Fertilizer</h4>
-                            <div className="value text-success text-display-md">{r.fertilizer_name}</div>
-                            <span className="unit">ML Prediction</span>
+                    {/* Responsive Horizontal Cards: Flex on mobile, 3-column on desktop */}
+                    <div className="rec-grid">
+                        <div className="rec-item-card">
+                            <span className="rec-item-label">Recommended Fertilizer</span>
+                            <div className="rec-item-value text-success">{r.fertilizer_name}</div>
+                            <span className="rec-item-sub">ML Prediction</span>
                         </div>
-                        <div className="stat-box">
-                            <h4>Nutrient Type</h4>
-                            <div className="value text-warning text-display-md">{r.nutrient_type}</div>
-                            <span className="unit">Deficiency Type</span>
+                        <div className="rec-item-card">
+                            <span className="rec-item-label">Nutrient Type</span>
+                            <div className="rec-item-value text-warning">{r.nutrient_type}</div>
+                            <span className="rec-item-sub">Deficiency Type</span>
                         </div>
-                        <div className="stat-box">
-                            <h4>Amount to Apply</h4>
-                            <div className="value text-danger text-display-lg">{r.recommended_amount_kg}</div>
-                            <span className="unit">kg / hectare</span>
+                        <div className="rec-item-card">
+                            <span className="rec-item-label">Amount to Apply</span>
+                            <div className="rec-item-value text-danger">
+                                {r.recommended_amount_kg} <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#64748b' }}>kg / ha</span>
+                            </div>
+                            <span className="rec-item-sub">Field Dosage</span>
                         </div>
                     </div>
 
-                    {}
                     <div className="action-list">
                         <ul>
                             <li>{r.action_plan}</li>
