@@ -4,9 +4,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import transaction
-from django.conf import settings
+from django.utils import timezone
 
-from .models import Account, Role, Farmer, MaoStaff, Farm, SoilReading, SoilHealthStatus, Recommendation, Fertilizer
+from .models import Account, Role, Farmer, MaoStaff, Farm, IoTDevice, SoilReading, SoilHealthStatus, Recommendation, Fertilizer
 from .serializers import AccountSerializer, SoilReadingSerializer
 from .ml_service import predict_soil_condition
 from .permissions import IsMaoAdmin, IsFarmer
@@ -43,40 +43,62 @@ def login_view(request):
     else:
         return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
+# =============================================================================
+#  IoT DATA INGESTION — Secured via per-device UID (replaces static API key)
+# =============================================================================
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def iot_data_ingest(request):
     """
-    IoT Data Ingestion matching the ERD.
-    Links directly to Farm instead of IoTDevice.
+    Secure IoT Data Ingestion.
+    Authenticates via X-Device-UID header against the IoTDevice registry.
+    Automatically maps incoming data to the device's assigned farm.
     """
- 
-    api_key = request.headers.get('X-Api-Key')
-    if api_key != settings.IOT_API_KEY:
-        return Response({'error': 'Unauthorized hardware device'}, status=status.HTTP_401_UNAUTHORIZED)
+    device_uid = request.headers.get('X-Device-UID')
+    if not device_uid:
+        return Response(
+            {'error': 'Missing device identifier. Provide X-Device-UID header.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-    farm_id = request.data.get('farm_id')
+    try:
+        device = IoTDevice.objects.select_related('farm', 'farm__farmer').get(device_uid=device_uid)
+    except IoTDevice.DoesNotExist:
+        return Response(
+            {'error': 'Unregistered device. Register this device in the MAO Hardware Registry.'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    if not device.is_active:
+        return Response(
+            {'error': 'Device is deactivated. Contact the Municipal Agriculture Office.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    if not device.farm:
+        return Response(
+            {'error': 'Device is not assigned to any farm. Assign it in the MAO Hardware Registry.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    farm = device.farm
+
     nitrogen = float(request.data.get('nitrogen', 0))
     phosphorus = float(request.data.get('phosphorus', 0))
     potassium = float(request.data.get('potassium', 0))
     ph = float(request.data.get('ph', 0))
     moisture = float(request.data.get('moisture', 0))
 
-    try:
-        farm = Farm.objects.get(farm_id=farm_id)
-    except Farm.DoesNotExist:
-        return Response({'error': 'Unregistered Farm'}, status=status.HTTP_404_NOT_FOUND)
-
     condition, action_plan, fert_name, nutrient, amount = predict_soil_condition(
         nitrogen, phosphorus, potassium, ph, moisture
     )
-    
-  
+
     status_obj, _ = SoilHealthStatus.objects.get_or_create(status_name=condition)
 
-   
     reading = SoilReading.objects.create(
         farm=farm,
+        device=device,
         nitrogen_n=nitrogen,
         phosphorus_p=phosphorus,
         potassium_k=potassium,
@@ -100,6 +122,10 @@ def iot_data_ingest(request):
         recommended_amount_kg=amount
     )
 
+    # Update device last_sync timestamp
+    device.last_sync = timezone.now()
+    device.save(update_fields=['last_sync'])
+
     return Response({
         'message': 'Data processed successfully',
         'reading_id': reading.reading_id,
@@ -107,6 +133,10 @@ def iot_data_ingest(request):
         'fertilizer_recommendation': fert_name,
         'recommended_amount_kg': amount
     }, status=status.HTTP_201_CREATED)
+
+# =============================================================================
+#  FARMER ENDPOINTS
+# =============================================================================
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsFarmer])
@@ -138,6 +168,51 @@ def farmer_logs(request):
         return Response(data)
     except Farmer.DoesNotExist:
         return Response({'error': 'No profile found'}, status=404)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsFarmer])
+def farmer_dashboard_data(request):
+    user = request.user
+    
+    try:
+        farmer = user.farmer_profile
+        farms = Farm.objects.filter(farmer=farmer)
+        farm = farms.first()
+        
+        reading_data = None
+        if farm:
+            latest_reading = SoilReading.objects.filter(farm=farm).select_related('status').prefetch_related(
+                'recommendations__fertilizer'
+            ).order_by('-recorded_at').first()
+            if latest_reading:
+                rec = latest_reading.recommendations.first()
+                reading_data = {
+                    'nitrogen': latest_reading.nitrogen_n,
+                    'phosphorus': latest_reading.phosphorus_p,
+                    'potassium': latest_reading.potassium_k,
+                    'ph': latest_reading.ph_level,
+                    'moisture': latest_reading.moisture,
+                    'condition': latest_reading.status.status_name if latest_reading.status else 'Unknown',
+                    'recorded_at': latest_reading.recorded_at,
+                    'fertilizer_name': rec.fertilizer.fertilizer_name if rec else 'N/A',
+                    'nutrient_type': rec.fertilizer.nutrient_type if rec else 'N/A',
+                    'recommended_amount_kg': rec.recommended_amount_kg if rec else None,
+                    'action_plan': rec.fertilizer.description if rec else 'Monitor your field closely.',
+                }
+
+        return Response({
+            'farmer_name': f"{farmer.firstname} {farmer.lastname}",
+            'control_id': user.username,
+            'barangay': farmer.barangay,
+            'farm_location': farm.location if farm else 'No Farm Registered',
+            'latest_reading': reading_data
+        })
+    except Farmer.DoesNotExist:
+        return Response({'error': 'No profile found'}, status=404)
+
+# =============================================================================
+#  MAO ENDPOINTS — Farmer & Farm Registration
+# =============================================================================
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsMaoAdmin])
@@ -189,7 +264,7 @@ def register_farmer(request):
 @permission_classes([IsAuthenticated, IsMaoAdmin])
 def register_farm(request):
     """
-    MAO Endpoint to register a Farm (Hardware Registry) and link it to an existing Farmer.
+    MAO Endpoint to register a Farm and link it to an existing Farmer.
     """
     try:
         data = request.data
@@ -207,59 +282,133 @@ def register_farm(request):
         )
         
         return Response({
-            'message': 'Hardware (Farm) registered successfully!',
+            'message': 'Farm registered successfully!',
             'farm_id': farm.farm_id
         }, status=status.HTTP_201_CREATED)
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsFarmer])
-def farmer_dashboard_data(request):
-    user = request.user
-    
+# =============================================================================
+#  MAO ENDPOINTS — IoT Device Management (Hardware Registry)
+# =============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
+def register_device(request):
+    """
+    MAO Endpoint to register a new IoT sensor device and assign it to a farm.
+    """
     try:
-        farmer = user.farmer_profile
-        farms = Farm.objects.filter(farmer=farmer)
-        farm = farms.first()
-        
-        reading_data = None
-        if farm:
-            latest_reading = SoilReading.objects.filter(farm=farm).select_related('status').prefetch_related(
-                'recommendations__fertilizer'
-            ).order_by('-recorded_at').first()
-            if latest_reading:
-                rec = latest_reading.recommendations.first()
-                reading_data = {
-                    'nitrogen': latest_reading.nitrogen_n,
-                    'phosphorus': latest_reading.phosphorus_p,
-                    'potassium': latest_reading.potassium_k,
-                    'ph': latest_reading.ph_level,
-                    'moisture': latest_reading.moisture,
-                    'condition': latest_reading.status.status_name if latest_reading.status else 'Unknown',
-                    'recorded_at': latest_reading.recorded_at,
-                    'fertilizer_name': rec.fertilizer.fertilizer_name if rec else 'N/A',
-                    'nutrient_type': rec.fertilizer.nutrient_type if rec else 'N/A',
-                    'recommended_amount_kg': rec.recommended_amount_kg if rec else None,
-                    'action_plan': rec.fertilizer.description if rec else 'Monitor your field closely.',
-                }
+        data = request.data
+        device_uid = data.get('device_uid', '').strip()
+        device_name = data.get('device_name', 'SoilSense Probe').strip()
+        farm_id = data.get('farm_id')
+
+        if not device_uid:
+            return Response({'error': 'Device UID is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if IoTDevice.objects.filter(device_uid=device_uid).exists():
+            return Response({'error': 'A device with this UID is already registered.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        farm = None
+        if farm_id:
+            try:
+                farm = Farm.objects.get(farm_id=farm_id)
+            except Farm.DoesNotExist:
+                return Response({'error': 'Farm not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        device = IoTDevice.objects.create(
+            device_uid=device_uid,
+            device_name=device_name,
+            farm=farm,
+            is_active=True
+        )
 
         return Response({
-            'farmer_name': f"{farmer.firstname} {farmer.lastname}",
-            'control_id': user.username,
-            'barangay': farmer.barangay,
-            'farm_location': farm.location if farm else 'No Farm Registered',
-            'latest_reading': reading_data
+            'message': 'IoT device registered successfully!',
+            'device_id': device.device_id,
+            'device_uid': device.device_uid
+        }, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
+def list_devices(request):
+    """
+    Returns all registered IoT devices with their farm assignment and sync status.
+    """
+    devices = IoTDevice.objects.select_related('farm', 'farm__farmer', 'farm__farmer__account').all().order_by('-registered_date')
+
+    data = []
+    for device in devices:
+        farm = device.farm
+        data.append({
+            'device_id': device.device_id,
+            'device_uid': device.device_uid,
+            'device_name': device.device_name,
+            'is_active': device.is_active,
+            'farm_id': farm.farm_id if farm else None,
+            'farm_location': farm.location if farm else 'Unassigned',
+            'farmer_name': f"{farm.farmer.firstname} {farm.farmer.lastname}" if farm else 'N/A',
+            'control_id': farm.farmer.account.username if farm else 'N/A',
+            'last_sync': device.last_sync,
+            'registered_date': device.registered_date,
         })
-    except Farmer.DoesNotExist:
-        return Response({'error': 'No profile found'}, status=404)
+
+    return Response(data)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
+def unassign_device(request, device_id):
+    """
+    MAO Endpoint to unassign an IoT device from its farm.
+    Sets device.farm = null instead of deleting the Farm entity,
+    preserving all historical soil readings.
+    """
+    try:
+        device = IoTDevice.objects.get(device_id=device_id)
+        device.farm = None
+        device.save(update_fields=['farm'])
+        return Response({'message': 'Device unassigned successfully. Historical data preserved.'}, status=status.HTTP_200_OK)
+    except IoTDevice.DoesNotExist:
+        return Response({'error': 'Device not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
+def assign_device(request, device_id):
+    """
+    MAO Endpoint to assign (or reassign) an IoT device to a farm.
+    """
+    try:
+        device = IoTDevice.objects.get(device_id=device_id)
+        farm_id = request.data.get('farm_id')
+
+        if not farm_id:
+            return Response({'error': 'farm_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            farm = Farm.objects.get(farm_id=farm_id)
+        except Farm.DoesNotExist:
+            return Response({'error': 'Farm not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        device.farm = farm
+        device.save(update_fields=['farm'])
+        return Response({'message': f'Device assigned to Farm {farm.farm_id} successfully.'}, status=status.HTTP_200_OK)
+    except IoTDevice.DoesNotExist:
+        return Response({'error': 'Device not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+# =============================================================================
+#  MAO ENDPOINTS — Dashboard & Logs
+# =============================================================================
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsMaoAdmin])
 def mao_dashboard_data(request):
     total_farmers = Farmer.objects.count()
-    active_farms = Farm.objects.count()
+    active_devices = IoTDevice.objects.filter(is_active=True, farm__isnull=False).count()
     
     latest_readings = SoilReading.objects.select_related('status').prefetch_related(
         'recommendations__fertilizer'
@@ -296,7 +445,7 @@ def mao_dashboard_data(request):
     return Response({
         'stats': {
             'total_farmers': total_farmers,
-            'active_sensors': active_farms,
+            'active_sensors': active_devices,
             'critical_fields': critical_fields_count,
         },
         'recent_statuses': farmer_statuses
@@ -338,7 +487,7 @@ def mao_logs_data(request):
 @permission_classes([IsAuthenticated, IsMaoAdmin])
 def mao_farms_data(request):
     """
-    Returns all registered farms and their latest hardware (sensor) status.
+    Returns all registered farms for the farm dropdown and overview.
     """
     latest_readings = SoilReading.objects.order_by('-recorded_at')
     farms = Farm.objects.select_related('farmer', 'farmer__account').all().prefetch_related(
@@ -403,12 +552,12 @@ def delete_farmer(request, account_id):
 @permission_classes([IsAuthenticated, IsMaoAdmin])
 def unregister_farm(request, farm_id):
     """
-    MAO Endpoint to unregister a Farm (Hardware) from a Farmer.
+    MAO Endpoint to unregister a Farm from a Farmer.
     This also cascades to delete the SoilReadings associated with this Farm.
     """
     try:
         farm = Farm.objects.get(farm_id=farm_id)
         farm.delete()
-        return Response({'message': 'Hardware unregistered successfully.'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Farm unregistered successfully.'}, status=status.HTTP_200_OK)
     except Farm.DoesNotExist:
-        return Response({'error': 'Hardware not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Farm not found.'}, status=status.HTTP_404_NOT_FOUND)

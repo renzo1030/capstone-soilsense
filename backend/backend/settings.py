@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-22qs(t_l5wut7o9wew#-j)%%ijki+fxdv#c2!it@0s0!m+g&(y')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['*'] if DEBUG else ['localhost', '127.0.0.1']
-IOT_API_KEY = os.environ.get('IOT_API_KEY', 'unisan-soil-sense-2026')
+# IOT_API_KEY removed — device authentication now uses per-device UID via IoTDevice model
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
