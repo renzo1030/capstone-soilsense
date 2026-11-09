@@ -43,8 +43,7 @@ const Sidebar = ({ role }) => {
                         <li key={link.path}>
                             <Link 
                                 to={link.path} 
-                                className={isActive ? 'active bg-emerald-600 text-white font-semibold shadow-sm' : 'text-gray-600 hover:bg-gray-100'}
-                                style={isActive ? { color: '#ffffff', backgroundColor: '#059669' } : {}}
+                                className={isActive ? 'active' : ''}
                             >
                                 {link.label}
                             </Link>

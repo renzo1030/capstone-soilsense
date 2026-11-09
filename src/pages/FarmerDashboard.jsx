@@ -148,56 +148,56 @@ const FarmerDashboard = () => {
                     </div>
                 </header>
                 <div className="dashboard-stats">
-                    <div className="stat-box bg-white border border-gray-100 rounded-xl shadow-sm p-4 cursor-default select-none">
+                    <div className="stat-box cursor-default select-none">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <Sprout size={20} className="text-secondary" />
+                            <Sprout size={20} color="var(--primary)" />
                             <h4 style={{ margin: 0 }}>Nitrogen (N)</h4>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                             <span className={`text-3xl font-bold ${r.nitrogen < THRESHOLDS.nitrogen.low ? 'text-danger' : 'text-success'}`}>{r.nitrogen}</span>
-                            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>mg/kg</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '500' }}>mg/kg</span>
                         </div>
                     </div>
-                    <div className="stat-box bg-white border border-gray-100 rounded-xl shadow-sm p-4 cursor-default select-none">
+                    <div className="stat-box cursor-default select-none">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <Sprout size={20} className="text-secondary" />
+                            <Sprout size={20} color="var(--primary)" />
                             <h4 style={{ margin: 0 }}>Phosphorus (P)</h4>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                             <span className={`text-3xl font-bold ${r.phosphorus < THRESHOLDS.phosphorus.low ? 'text-danger' : 'text-success'}`}>{r.phosphorus}</span>
-                            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>mg/kg</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '500' }}>mg/kg</span>
                         </div>
                     </div>
-                    <div className="stat-box bg-white border border-gray-100 rounded-xl shadow-sm p-4 cursor-default select-none">
+                    <div className="stat-box cursor-default select-none">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <Sprout size={20} className="text-secondary" />
+                            <Sprout size={20} color="var(--primary)" />
                             <h4 style={{ margin: 0 }}>Potassium (K)</h4>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                             <span className={`text-3xl font-bold ${r.potassium < THRESHOLDS.potassium.low ? 'text-danger' : 'text-success'}`}>{r.potassium}</span>
-                            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>mg/kg</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '500' }}>mg/kg</span>
                         </div>
                     </div>
-                    <div className="stat-box bg-white border border-gray-100 rounded-xl shadow-sm p-4 cursor-default select-none">
+                    <div className="stat-box cursor-default select-none">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <Beaker size={20} className="text-secondary" />
+                            <Beaker size={20} color="var(--primary)" />
                             <h4 style={{ margin: 0 }}>Soil pH</h4>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                             <span className={`text-3xl font-bold ${r.ph < THRESHOLDS.ph.low || r.ph > THRESHOLDS.ph.high ? 'text-danger' : 'text-success'}`}>{r.ph}</span>
-                            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '500' }}>
                                 ({r.ph < THRESHOLDS.ph.low ? 'Acidic' : (r.ph > THRESHOLDS.ph.high ? 'Alkaline' : 'Optimal')})
                             </span>
                         </div>
                     </div>
-                    <div className="stat-box bg-white border border-gray-100 rounded-xl shadow-sm p-4 cursor-default select-none">
+                    <div className="stat-box cursor-default select-none">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <Droplets size={20} className="text-secondary" />
+                            <Droplets size={20} color="var(--primary)" />
                             <h4 style={{ margin: 0 }}>Moisture</h4>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                             <span className={`text-3xl font-bold ${r.moisture < THRESHOLDS.moisture.low ? 'text-warning' : 'text-success'}`}>{r.moisture}%</span>
-                            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '500' }}>
                                 {r.moisture < THRESHOLDS.moisture.low ? '(Low)' : '(Adequate)'}
                             </span>
                         </div>
@@ -216,10 +216,11 @@ const FarmerDashboard = () => {
                             <div 
                                 style={{
                                     background: '#ffffff',
-                                    borderLeft: `5px solid ${isOptimal ? '#059669' : '#d97706'}`,
-                                    padding: '18px 24px',
-                                    borderRadius: '0 14px 14px 0',
-                                    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+                                    border: '1.5px solid var(--card-border)',
+                                    borderLeft: `5px solid ${isOptimal ? '#047857' : '#d97706'}`,
+                                    padding: '20px 24px',
+                                    borderRadius: '0 16px 16px 0',
+                                    boxShadow: 'var(--shadow-sm)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
@@ -228,10 +229,10 @@ const FarmerDashboard = () => {
                                 }}
                             >
                                 <div>
-                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: '#64748b' }}>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-light)' }}>
                                         Soil Health Evaluation
                                     </span>
-                                    <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', marginTop: '2px' }}>
+                                    <div style={{ fontSize: '1.35rem', fontWeight: '800', color: 'var(--text-charcoal)', marginTop: '2px', letterSpacing: '-0.02em' }}>
                                         {soilCondition}
                                     </div>
                                 </div>
@@ -243,7 +244,7 @@ const FarmerDashboard = () => {
                                             padding: '6px 14px',
                                             borderRadius: '8px',
                                             fontSize: '0.88rem',
-                                            fontWeight: '600',
+                                            fontWeight: '700',
                                             border: `1px solid ${isOptimal ? '#a7f3d0' : '#fde68a'}`
                                         }}
                                     >
