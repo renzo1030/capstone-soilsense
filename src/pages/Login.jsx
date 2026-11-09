@@ -60,6 +60,9 @@ const Login = () => {
                                 placeholder="e.g. UN-2026-001" 
                                 value={controlId}
                                 onChange={(e) => setControlId(e.target.value.toUpperCase())}
+                                autoCapitalize="characters"
+                                autoCorrect="off"
+                                spellCheck="false"
                                 required 
                             />
                         </div>

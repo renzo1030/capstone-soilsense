@@ -141,21 +141,21 @@ const MaoHistory = () => {
                             ) : (
                                 logs.map((log) => (
                                     <tr key={log.id}>
-                                        <td>{formatDate(log.timestamp)}</td>
-                                        <td>
+                                        <td data-label="Date & Time">{formatDate(log.timestamp)}</td>
+                                        <td data-label="Farmer / Location">
                                             <strong>{log.farmer_name}</strong><br/>
                                             <span className="sub-text">{log.location}</span>
                                         </td>
-                                        <td>{log.nitrogen} - {log.phosphorus} - {log.potassium}</td>
-                                        <td className={log.ph < THRESHOLDS.ph.low || log.ph > THRESHOLDS.ph.high ? "text-danger fw-600" : "text-success fw-600"}>{log.ph}</td>
-                                        <td className={log.moisture < THRESHOLDS.moisture.low ? "text-warning fw-600" : "text-success fw-600"}>{log.moisture}%</td>
-                                        <td>
+                                        <td data-label="N-P-K (mg/kg)">{log.nitrogen} - {log.phosphorus} - {log.potassium}</td>
+                                        <td data-label="pH" className={log.ph < THRESHOLDS.ph.low || log.ph > THRESHOLDS.ph.high ? "text-danger fw-600" : "text-success fw-600"}>{log.ph}</td>
+                                        <td data-label="Moisture" className={log.moisture < THRESHOLDS.moisture.low ? "text-warning fw-600" : "text-success fw-600"}>{log.moisture}%</td>
+                                        <td data-label="ML Condition">
                                             <span className={`badge ${log.condition === 'Optimal' ? 'badge-optimal' : 'badge-warning-alt'}`}>
                                                 {log.condition}
                                             </span>
                                         </td>
-                                        <td><strong>{log.fertilizer_name || 'N/A'}</strong></td>
-                                        <td>{log.recommended_amount_kg != null ? `${log.recommended_amount_kg} kg` : 'N/A'}</td>
+                                        <td data-label="Recommended"><strong>{log.fertilizer_name || 'N/A'}</strong></td>
+                                        <td data-label="Amount">{log.recommended_amount_kg != null ? `${log.recommended_amount_kg} kg` : 'N/A'}</td>
                                     </tr>
                                 ))
                             )}
