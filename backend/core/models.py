@@ -58,7 +58,7 @@ class IoTDevice(models.Model):
 
 class SoilHealthStatus(models.Model):
     status_id = models.AutoField(primary_key=True)
-    status_name = models.CharField(max_length=50, unique=True)
+    status_name = models.CharField(max_length=150, unique=True)
     description = models.TextField(blank=True)
     def __str__(self):
         return self.status_name
@@ -84,7 +84,7 @@ class SoilReading(models.Model):
 class Fertilizer(models.Model):
     fertilizer_id = models.AutoField(primary_key=True)
     fertilizer_name = models.CharField(max_length=100)
-    nutrient_type = models.CharField(max_length=50)
+    nutrient_type = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     def __str__(self):
         return self.fertilizer_name
