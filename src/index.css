@@ -993,24 +993,45 @@ body {
     .dashboard-header .btn-header {
         width: 100%;
     }
+    /* 1. Mobile Dashboard Grid (Left-aligned, 2-Column with Breathing Room) */
     .dashboard-stats {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12px !important;
+        gap: 14px !important;
     }
     .dashboard-stats .stat-box:last-child {
         grid-column: span 2;
     }
     .stat-box {
-        padding: 16px 12px !important;
+        padding: 20px !important;
         background: #ffffff !important;
         border: 2px solid #e2e8f0 !important;
-        box-shadow: var(--shadow-sm);
+        border-radius: 14px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+        text-align: left !important;
+        align-items: flex-start !important;
+    }
+    .stat-box > div,
+    .stat-box header,
+    .stat-box h4 {
+        text-align: left !important;
+        justify-content: flex-start !important;
+        margin-bottom: 8px !important;
     }
     .stat-box .value {
-        font-size: 1.8rem !important;
-        font-weight: 700;
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+        text-align: left !important;
+        margin-bottom: 4px;
+        line-height: 1.1;
     }
+    .stat-box .unit {
+        text-align: left !important;
+        margin-top: 0 !important;
+        font-size: 0.95rem;
+    }
+
+    /* 2. Mobile Card Tables (Vertical Stack, Zero Overlap, High Breathing Room) */
     .table-container {
         padding: 16px;
         margin: 0 0 24px 0;
@@ -1043,21 +1064,23 @@ body {
         background: #ffffff !important;
         border-radius: 14px !important;
         border: 2px solid #e2e8f0 !important;
-        margin-bottom: 16px !important;
-        padding: 16px !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        margin-bottom: 18px !important;
+        padding: 20px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
     }
     .styled-table tbody tr:hover {
         transform: none !important;
     }
     .styled-table td {
         display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
         padding: 10px 0 !important;
-        border-bottom: 1px dashed #f1f5f9 !important;
-        font-size: 0.95rem !important;
-        text-align: right !important;
+        border-bottom: 1px dashed #e2e8f0 !important;
+        font-size: 1.05rem !important;
+        text-align: left !important;
+        width: 100% !important;
     }
     .styled-table td:last-child {
         border-bottom: none !important;
@@ -1065,14 +1088,19 @@ body {
     .styled-table td::before {
         content: attr(data-label);
         font-weight: 700;
-        color: #475569;
-        font-size: 0.85rem;
+        color: #64748b;
+        font-size: 0.78rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.6px;
         text-align: left;
-        padding-right: 12px;
+        margin-bottom: 2px;
         flex-shrink: 0;
     }
+    .styled-table td > * {
+        text-align: left !important;
+    }
+
+    /* 3. Mobile Forms & Inputs (Icon Overlap Fix & No iOS Zoom) */
     .form-grid-2,
     .admin-grid {
         grid-template-columns: 1fr !important;
@@ -1089,6 +1117,14 @@ body {
         font-size: 16px !important;
         padding: 14px 16px !important;
         min-height: 48px !important;
+    }
+    .input-with-icon input,
+    .input-icon-wrapper input {
+        padding-left: 48px !important; /* Prevents text from overlapping absolute left icons */
+    }
+    .input-icon-wrapper input[type="password"],
+    .input-icon-wrapper input[type="text"] {
+        padding-right: 48px !important; /* Clears right eye toggle button */
     }
     .modal-container {
         max-height: 90vh !important;

@@ -63,6 +63,7 @@ const Login = () => {
                                 autoCapitalize="characters"
                                 autoCorrect="off"
                                 spellCheck="false"
+                                style={{ paddingLeft: '48px' }}
                                 required 
                             />
                         </div>
@@ -76,7 +77,7 @@ const Login = () => {
                                 placeholder="••••••••" 
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                style={{ paddingRight: '44px' }}
+                                style={{ paddingLeft: '48px', paddingRight: '48px' }}
                                 required 
                             />
                             <button
