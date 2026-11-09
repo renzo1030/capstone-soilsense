@@ -100,10 +100,15 @@ def predict_soil_condition(nitrogen, phosphorus, potassium, ph, moisture):
     try:
         model = load_model()
         
+        # Convert sensor concentration (mg/kg) to soil nutrient index (kg/ha)
+        scaled_n = float(nitrogen) * 2.5
+        scaled_p = float(phosphorus) * 2.2
+        scaled_k = float(potassium) * 2.0
+        
         df = pd.DataFrame([{
-            'Nitrogen_Level': float(nitrogen),
-            'Phosphorus_Level': float(phosphorus),
-            'Potassium_Level': float(potassium),
+            'Nitrogen_Level': scaled_n,
+            'Phosphorus_Level': scaled_p,
+            'Potassium_Level': scaled_k,
             'Soil_pH': float(ph),
             'Soil_Moisture': float(moisture)
         }])

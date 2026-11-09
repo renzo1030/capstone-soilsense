@@ -4,7 +4,7 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-22qs(t_l5wut7o9wew#-j)%%ijki+fxdv#c2!it@0s0!m+g&(y')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*'] if DEBUG else ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 # IOT_API_KEY removed — device authentication now uses per-device UID via IoTDevice model
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -69,6 +69,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'core.Account'
 CORS_ALLOW_ALL_ORIGINS = True
