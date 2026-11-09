@@ -208,10 +208,14 @@ const MaoRegisterFarmer = () => {
                                 <span className="section-badge-icon"><Lock size={18} color="var(--primary)" /></span>
                                 Account Credentials
                             </div>
-                            <div className="form-group">
-                                <label>Control ID (Username)</label>
-                                <div className="relative w-full">
-                                    <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                    Control ID (Username)
+                                </label>
+                                <div className="relative rounded-md shadow-sm">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Hash className="h-5 w-5 text-gray-400" />
+                                    </div>
                                     <input 
                                         type="text" 
                                         name="control_id" 
@@ -219,15 +223,18 @@ const MaoRegisterFarmer = () => {
                                         onChange={handleChange} 
                                         required 
                                         placeholder="e.g., FARMER002"
-                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                                        style={{ paddingLeft: '2.75rem' }}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
                                     />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Temporary Password</label>
-                                <div className="relative w-full">
-                                    <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                    Temporary Password
+                                </label>
+                                <div className="relative rounded-md shadow-sm">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Lock className="h-5 w-5 text-gray-400" />
+                                    </div>
                                     <input 
                                         type="password" 
                                         name="password" 
@@ -235,8 +242,7 @@ const MaoRegisterFarmer = () => {
                                         onChange={handleChange} 
                                         required 
                                         placeholder="Secure Password"
-                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                                        style={{ paddingLeft: '2.75rem' }}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
                                     />
                                 </div>
                             </div>
@@ -248,10 +254,14 @@ const MaoRegisterFarmer = () => {
                                 <span className="section-badge-icon"><User size={18} color="var(--primary)" /></span>
                                 Personal Details
                             </div>
-                            <div className="form-group">
-                                <label>First Name</label>
-                                <div className="relative w-full">
-                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                    First Name
+                                </label>
+                                <div className="relative rounded-md shadow-sm">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <User className="h-5 w-5 text-gray-400" />
+                                    </div>
                                     <input 
                                         type="text" 
                                         name="firstname" 
@@ -259,15 +269,18 @@ const MaoRegisterFarmer = () => {
                                         onChange={handleChange} 
                                         required 
                                         placeholder="Juan"
-                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                                        style={{ paddingLeft: '2.75rem' }}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
                                     />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Last Name</label>
-                                <div className="relative w-full">
-                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                    Last Name
+                                </label>
+                                <div className="relative rounded-md shadow-sm">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <User className="h-5 w-5 text-gray-400" />
+                                    </div>
                                     <input 
                                         type="text" 
                                         name="lastname" 
@@ -275,15 +288,18 @@ const MaoRegisterFarmer = () => {
                                         onChange={handleChange} 
                                         required 
                                         placeholder="Dela Cruz"
-                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                                        style={{ paddingLeft: '2.75rem' }}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
                                     />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Contact Number</label>
-                                <div className="relative w-full">
-                                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                    Contact Number
+                                </label>
+                                <div className="relative rounded-md shadow-sm">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Phone className="h-5 w-5 text-gray-400" />
+                                    </div>
                                     <input 
                                         type="text" 
                                         name="contact_number" 
@@ -291,15 +307,18 @@ const MaoRegisterFarmer = () => {
                                         onChange={handleChange} 
                                         required 
                                         placeholder="09xxxxxxxxx"
-                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                                        style={{ paddingLeft: '2.75rem' }}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
                                     />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Barangay</label>
-                                <div className="relative w-full">
-                                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                    Barangay
+                                </label>
+                                <div className="relative rounded-md shadow-sm">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <MapPin className="h-5 w-5 text-gray-400" />
+                                    </div>
                                     <input 
                                         type="text" 
                                         name="barangay" 
@@ -307,8 +326,7 @@ const MaoRegisterFarmer = () => {
                                         onChange={handleChange} 
                                         required 
                                         placeholder="San Jose"
-                                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                                        style={{ paddingLeft: '2.75rem' }}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
                                     />
                                 </div>
                             </div>
