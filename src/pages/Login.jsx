@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sprout, Hash, Lock } from 'lucide-react';
+import { Sprout, Hash, Lock, Eye, EyeOff } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 const Login = () => {
     const navigate = useNavigate();
     const [controlId, setControlId] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const handleSubmit = async (e) => {
@@ -68,12 +69,22 @@ const Login = () => {
                         <div className="input-icon-wrapper">
                             <Lock className="input-icon" size={20} />
                             <input 
-                                type="password" 
+                                type={showPassword ? "text" : "password"} 
                                 placeholder="••••••••" 
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                style={{ paddingRight: '44px' }}
                                 required 
                             />
+                            <button
+                                type="button"
+                                className="password-toggle-btn"
+                                onClick={() => setShowPassword(!showPassword)}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                tabIndex={-1}
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                         </div>
                     </div>
                     {error && <div className="error-message">{error}</div>}

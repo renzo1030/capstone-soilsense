@@ -532,6 +532,24 @@ body {
 .input-icon-wrapper:focus-within .input-icon {
     color: var(--primary);
 }
+.password-toggle-btn {
+    position: absolute;
+    right: 14px;
+    background: transparent;
+    border: none;
+    padding: 4px;
+    margin: 0;
+    color: var(--text-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: var(--transition);
+}
+.password-toggle-btn:hover {
+    color: var(--primary);
+}
 .form-group input, 
 .form-group select {
     width: 100%;
