@@ -340,33 +340,36 @@ const MaoDevices = () => {
                 </header>
 
                 {/* ── Section 1: Register a Farm ── */}
-                <div className="glass-card-form">
+                <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden mb-8">
                     {farmFormStatus.message && (
-                        <div className={`status-badge status-badge-lg ${farmFormStatus.type === 'success' ? 'badge-optimal' : 'badge-warning-alt'}`}>
+                        <div className={`p-4 text-sm font-medium border-b ${farmFormStatus.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' : 'bg-amber-50 text-amber-800 border-amber-100'}`}>
                             {farmFormStatus.message}
                         </div>
                     )}
-                    <form onSubmit={handleRegisterFarm} className="form-grid">
-                        <div className="form-section grid-col-full">
-                            <div className="section-badge">
-                                <span className="section-badge-icon"><Tractor size={18} color="var(--primary)" /></span>
-                                Step 1: Register a Farm
+                    <form onSubmit={handleRegisterFarm}>
+                        <div className="p-6">
+                            <div className="flex items-center gap-2 pb-4 mb-5 border-b border-slate-100">
+                                <span className="p-1.5 bg-emerald-50 text-emerald-700 rounded-md flex items-center justify-center">
+                                    <Tractor size={18} />
+                                </span>
+                                <h3 className="font-semibold text-slate-800 text-sm">Step 1: Register a Farm</h3>
                             </div>
-                            <div className="grid-auto-fit-250">
-                                <div className="mb-4">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* Select Farmer */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                                         Select Farmer
                                     </label>
-                                    <div className="relative rounded-md shadow-sm">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <User className="h-5 w-5 text-gray-400" />
-                                        </div>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <User size={18} />
+                                        </span>
                                         <select
                                             name="farmer_id"
                                             value={farmFormData.farmer_id}
                                             onChange={handleFarmChange}
                                             required
-                                            className="select-input block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
+                                            className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150 select-input"
                                         >
                                             <option value="" disabled>Select a registered farmer</option>
                                             {farmerList.map(farmer => (
@@ -377,14 +380,16 @@ const MaoDevices = () => {
                                         </select>
                                     </div>
                                 </div>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+
+                                {/* Farm Location */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                                         Farm Location
                                     </label>
-                                    <div className="relative rounded-md shadow-sm">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <MapPin className="h-5 w-5 text-gray-400" />
-                                        </div>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <MapPin size={18} />
+                                        </span>
                                         <input 
                                             type="text" 
                                             name="farm_location" 
@@ -392,18 +397,20 @@ const MaoDevices = () => {
                                             onChange={handleFarmChange} 
                                             required 
                                             placeholder="e.g., Brgy. San Jose Lot A"
-                                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
                                         />
                                     </div>
                                 </div>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+
+                                {/* Total Area */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                                         Total Area (Square Meters)
                                     </label>
-                                    <div className="relative rounded-md shadow-sm">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <MapPin className="h-5 w-5 text-gray-400" />
-                                        </div>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <MapPin size={18} />
+                                        </span>
                                         <input 
                                             type="number" 
                                             name="farm_area_sqm" 
@@ -411,15 +418,19 @@ const MaoDevices = () => {
                                             onChange={handleFarmChange} 
                                             required 
                                             placeholder="e.g., 10000"
-                                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
                                         />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="grid-col-full mt-10">
-                            <button type="submit" className={`btn-submit ${farmFormLoading ? 'btn-submit-loading' : ''}`} disabled={farmFormLoading || farmerList.length === 0}>
-                                <PlusCircle size={18} style={{ marginRight: '8px' }} />
+                        <div className="flex justify-end px-6 pb-6">
+                            <button
+                                type="submit"
+                                disabled={farmFormLoading || farmerList.length === 0}
+                                className="w-full md:w-auto min-w-[200px] inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-medium text-sm rounded-lg shadow-sm shadow-emerald-900/10 transition duration-150 disabled:opacity-50"
+                            >
+                                <PlusCircle size={18} />
                                 {farmFormLoading ? 'Registering...' : 'Register Farm'}
                             </button>
                         </div>
@@ -427,27 +438,30 @@ const MaoDevices = () => {
                 </div>
 
                 {/* ── Section 2: Register an IoT Device ── */}
-                <div className="glass-card-form mt-30">
+                <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden mb-8">
                     {deviceFormStatus.message && (
-                        <div className={`status-badge status-badge-lg ${deviceFormStatus.type === 'success' ? 'badge-optimal' : 'badge-warning-alt'}`}>
+                        <div className={`p-4 text-sm font-medium border-b ${deviceFormStatus.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' : 'bg-amber-50 text-amber-800 border-amber-100'}`}>
                             {deviceFormStatus.message}
                         </div>
                     )}
-                    <form onSubmit={handleRegisterDevice} className="form-grid">
-                        <div className="form-section grid-col-full">
-                            <div className="section-badge">
-                                <span className="section-badge-icon"><Cpu size={18} color="var(--primary)" /></span>
-                                Step 2: Register & Assign IoT Device
+                    <form onSubmit={handleRegisterDevice}>
+                        <div className="p-6">
+                            <div className="flex items-center gap-2 pb-4 mb-5 border-b border-slate-100">
+                                <span className="p-1.5 bg-emerald-50 text-emerald-700 rounded-md flex items-center justify-center">
+                                    <Cpu size={18} />
+                                </span>
+                                <h3 className="font-semibold text-slate-800 text-sm">Step 2: Register & Assign IoT Device</h3>
                             </div>
-                            <div className="grid-auto-fit-250">
-                                <div className="mb-4">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* Device UID */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                                         Device UID (MAC / Serial)
                                     </label>
-                                    <div className="relative rounded-md shadow-sm">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Cpu className="h-5 w-5 text-gray-400" />
-                                        </div>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <Cpu size={18} />
+                                        </span>
                                         <input 
                                             type="text" 
                                             name="device_uid" 
@@ -455,41 +469,45 @@ const MaoDevices = () => {
                                             onChange={handleDeviceChange} 
                                             required 
                                             placeholder="e.g., AA:BB:CC:DD:EE:FF"
-                                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
                                         />
                                     </div>
                                 </div>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+
+                                {/* Device Name */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                                         Device Name
                                     </label>
-                                    <div className="relative rounded-md shadow-sm">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Cpu className="h-5 w-5 text-gray-400" />
-                                        </div>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <Cpu size={18} />
+                                        </span>
                                         <input 
                                             type="text" 
                                             name="device_name" 
                                             value={deviceFormData.device_name} 
                                             onChange={handleDeviceChange} 
                                             placeholder="e.g., SoilSense Probe #1"
-                                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
                                         />
                                     </div>
                                 </div>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+
+                                {/* Assign to Farm */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                                         Assign to Farm
                                     </label>
-                                    <div className="relative rounded-md shadow-sm">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <MapPin className="h-5 w-5 text-gray-400" />
-                                        </div>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <MapPin size={18} />
+                                        </span>
                                         <select
                                             name="farm_id"
                                             value={deviceFormData.farm_id}
                                             onChange={handleDeviceChange}
-                                            className="select-input block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
+                                            className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150 select-input"
                                         >
                                             <option value="">No assignment (register only)</option>
                                             {farmList.map(farm => (
@@ -502,9 +520,13 @@ const MaoDevices = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="grid-col-full mt-10">
-                            <button type="submit" className={`btn-submit ${deviceFormLoading ? 'btn-submit-loading' : ''}`} disabled={deviceFormLoading}>
-                                <PlusCircle size={18} style={{ marginRight: '8px' }} />
+                        <div className="flex justify-end px-6 pb-6">
+                            <button
+                                type="submit"
+                                disabled={deviceFormLoading}
+                                className="w-full md:w-auto min-w-[200px] inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-medium text-sm rounded-lg shadow-sm shadow-emerald-900/10 transition duration-150 disabled:opacity-50"
+                            >
+                                <PlusCircle size={18} />
                                 {deviceFormLoading ? 'Registering...' : 'Register IoT Device'}
                             </button>
                         </div>

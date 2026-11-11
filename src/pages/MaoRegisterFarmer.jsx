@@ -199,141 +199,164 @@ const MaoRegisterFarmer = () => {
                     </div>
                 </header>
 
-                {/* Register Farmer Form */}
-                <div className="glass-card-form">
-                    <form onSubmit={handleSubmit} className="form-grid">
-                        {/* Account Credentials */}
-                        <div className="form-section">
-                            <div className="section-badge">
-                                <span className="section-badge-icon"><Lock size={18} color="var(--primary)" /></span>
-                                Account Credentials
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                    Control ID (Username)
-                                </label>
-                                <div className="relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Hash className="h-5 w-5 text-gray-400" />
+                {/* Register Farmer Form Container */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden mb-10">
+                    <form onSubmit={handleSubmit}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+                            {/* Card 1: Account Credentials */}
+                            <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm">
+                                <div className="flex items-center gap-2 pb-4 mb-5 border-b border-slate-100">
+                                    <span className="p-1.5 bg-emerald-50 text-emerald-700 rounded-md flex items-center justify-center">
+                                        <Lock size={18} />
+                                    </span>
+                                    <h3 className="font-semibold text-slate-800 text-sm">Account Credentials</h3>
+                                </div>
+
+                                {/* Control ID */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                                        Control ID (Username)
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <Hash size={18} />
+                                        </span>
+                                        <input
+                                            type="text"
+                                            name="control_id"
+                                            value={formData.control_id}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
+                                            placeholder="e.g. FARMER001"
+                                        />
                                     </div>
-                                    <input 
-                                        type="text" 
-                                        name="control_id" 
-                                        value={formData.control_id} 
-                                        onChange={handleChange} 
-                                        required 
-                                        placeholder="e.g., FARMER002"
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
-                                    />
+                                </div>
+
+                                {/* Temporary Password */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                                        Temporary Password
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <Lock size={18} />
+                                        </span>
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
+                                            placeholder="Secure Password"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                    Temporary Password
-                                </label>
-                                <div className="relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Lock className="h-5 w-5 text-gray-400" />
+
+                            {/* Card 2: Personal Details */}
+                            <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm">
+                                <div className="flex items-center gap-2 pb-4 mb-5 border-b border-slate-100">
+                                    <span className="p-1.5 bg-emerald-50 text-emerald-700 rounded-md flex items-center justify-center">
+                                        <User size={18} />
+                                    </span>
+                                    <h3 className="font-semibold text-slate-800 text-sm">Personal Details</h3>
+                                </div>
+
+                                {/* First Name */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                                        First Name
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <User size={18} />
+                                        </span>
+                                        <input
+                                            type="text"
+                                            name="firstname"
+                                            value={formData.firstname}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
+                                            placeholder="Juan"
+                                        />
                                     </div>
-                                    <input 
-                                        type="password" 
-                                        name="password" 
-                                        value={formData.password} 
-                                        onChange={handleChange} 
-                                        required 
-                                        placeholder="Secure Password"
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
-                                    />
+                                </div>
+
+                                {/* Last Name */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                                        Last Name
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <User size={18} />
+                                        </span>
+                                        <input
+                                            type="text"
+                                            name="lastname"
+                                            value={formData.lastname}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
+                                            placeholder="Dela Cruz"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Contact Number */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                                        Contact Number
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <Phone size={18} />
+                                        </span>
+                                        <input
+                                            type="text"
+                                            name="contact_number"
+                                            value={formData.contact_number}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
+                                            placeholder="09xxxxxxxxx"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Barangay */}
+                                <div className="flex flex-col gap-1.5 mb-4">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                                        Barangay
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                            <MapPin size={18} />
+                                        </span>
+                                        <input
+                                            type="text"
+                                            name="barangay"
+                                            value={formData.barangay}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
+                                            placeholder="San Jose"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Personal Details */}
-                        <div className="form-section">
-                            <div className="section-badge">
-                                <span className="section-badge-icon"><User size={18} color="var(--primary)" /></span>
-                                Personal Details
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                    First Name
-                                </label>
-                                <div className="relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <User className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <input 
-                                        type="text" 
-                                        name="firstname" 
-                                        value={formData.firstname} 
-                                        onChange={handleChange} 
-                                        required 
-                                        placeholder="Juan"
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
-                                    />
-                                </div>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                    Last Name
-                                </label>
-                                <div className="relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <User className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <input 
-                                        type="text" 
-                                        name="lastname" 
-                                        value={formData.lastname} 
-                                        onChange={handleChange} 
-                                        required 
-                                        placeholder="Dela Cruz"
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
-                                    />
-                                </div>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                    Contact Number
-                                </label>
-                                <div className="relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Phone className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <input 
-                                        type="text" 
-                                        name="contact_number" 
-                                        value={formData.contact_number} 
-                                        onChange={handleChange} 
-                                        required 
-                                        placeholder="09xxxxxxxxx"
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
-                                    />
-                                </div>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                    Barangay
-                                </label>
-                                <div className="relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <MapPin className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <input 
-                                        type="text" 
-                                        name="barangay" 
-                                        value={formData.barangay} 
-                                        onChange={handleChange} 
-                                        required 
-                                        placeholder="San Jose"
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid-col-full mt-10">
-                            <button type="submit" className={`btn-submit ${loading ? 'btn-submit-loading' : ''}`} disabled={loading}>
+                        {/* Action Button */}
+                        <div className="flex justify-end px-6 pb-6">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full md:w-auto min-w-[200px] inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-medium text-sm rounded-lg shadow-sm shadow-emerald-900/10 transition duration-150 disabled:opacity-50"
+                            >
                                 {loading ? 'Registering...' : 'Register Farmer'}
                             </button>
                         </div>
