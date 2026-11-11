@@ -297,26 +297,37 @@ const MaoDevices = () => {
                             <p style={{ marginBottom: '15px' }}>
                                 Reassigning <strong>{reassignModal.device?.device_uid}</strong> to a new farm:
                             </p>
-                            <div className="mb-4">
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            <div className="flex flex-col gap-1.5 mb-4">
+                                <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                                     Select Farm
                                 </label>
-                                <div className="relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <MapPin className="h-5 w-5 text-gray-400" />
-                                    </div>
+                                <div className="relative flex items-center">
+                                    <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base z-10">
+                                        <MapPin className="h-5 w-5 text-slate-400" />
+                                    </span>
                                     <select
-                                        className="select-input block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors duration-200"
+                                        className="w-full appearance-none pl-10 pr-10 py-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 font-medium shadow-sm hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150 cursor-pointer"
                                         value={reassignFarmId}
                                         onChange={(e) => setReassignFarmId(e.target.value)}
                                     >
-                                        <option value="" disabled>Select a farm</option>
-                                        {farmList.map(farm => (
-                                            <option key={farm.farm_id} value={farm.farm_id}>
+                                        <option value="" disabled className="text-slate-400 bg-white py-2">
+                                            Select a farm
+                                        </option>
+                                        {farmList.map((farm) => (
+                                            <option
+                                                key={farm.farm_id}
+                                                value={farm.farm_id}
+                                                className="text-slate-800 bg-white py-2.5 px-3 hover:bg-emerald-50"
+                                            >
                                                 {farm.farmer_name} — {farm.location} (FARM-{farm.farm_id.toString().padStart(4, '0')})
                                             </option>
                                         ))}
                                     </select>
+                                    <span className="absolute right-3.5 pointer-events-none text-slate-400 flex items-center">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -361,7 +372,7 @@ const MaoDevices = () => {
                                         Select Farmer
                                     </label>
                                     <div className="relative flex items-center">
-                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base z-10">
                                             <User size={18} />
                                         </span>
                                         <select
@@ -369,15 +380,26 @@ const MaoDevices = () => {
                                             value={farmFormData.farmer_id}
                                             onChange={handleFarmChange}
                                             required
-                                            className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150 select-input"
+                                            className="w-full appearance-none pl-10 pr-10 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 font-medium shadow-sm hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150 cursor-pointer"
                                         >
-                                            <option value="" disabled>Select a registered farmer</option>
-                                            {farmerList.map(farmer => (
-                                                <option key={farmer.farmer_id} value={farmer.farmer_id}>
+                                            <option value="" disabled className="text-slate-400 bg-white py-2">
+                                                Select a registered farmer
+                                            </option>
+                                            {farmerList.map((farmer) => (
+                                                <option
+                                                    key={farmer.farmer_id}
+                                                    value={farmer.farmer_id}
+                                                    className="text-slate-800 bg-white py-2.5 px-3 hover:bg-emerald-50"
+                                                >
                                                     {farmer.firstname} {farmer.lastname} ({farmer.control_id})
                                                 </option>
                                             ))}
                                         </select>
+                                        <span className="absolute right-3.5 pointer-events-none text-slate-400 flex items-center">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </span>
                                     </div>
                                 </div>
 
@@ -500,22 +522,31 @@ const MaoDevices = () => {
                                         Assign to Farm
                                     </label>
                                     <div className="relative flex items-center">
-                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base z-10">
                                             <MapPin size={18} />
                                         </span>
                                         <select
                                             name="farm_id"
                                             value={deviceFormData.farm_id}
                                             onChange={handleDeviceChange}
-                                            className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150 select-input"
+                                            className="w-full appearance-none pl-10 pr-10 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 font-medium shadow-sm hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150 cursor-pointer"
                                         >
-                                            <option value="">No assignment (register only)</option>
-                                            {farmList.map(farm => (
-                                                <option key={farm.farm_id} value={farm.farm_id}>
+                                            <option value="" className="text-slate-500 bg-white py-2">No assignment (register only)</option>
+                                            {farmList.map((farm) => (
+                                                <option
+                                                    key={farm.farm_id}
+                                                    value={farm.farm_id}
+                                                    className="text-slate-800 bg-white py-2.5 px-3 hover:bg-emerald-50"
+                                                >
                                                     {farm.farmer_name} — {farm.location} (FARM-{farm.farm_id.toString().padStart(4, '0')})
                                                 </option>
                                             ))}
                                         </select>
+                                        <span className="absolute right-3.5 pointer-events-none text-slate-400 flex items-center">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

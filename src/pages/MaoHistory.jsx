@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import { User } from 'lucide-react';
 import { API_BASE_URL, MUNICIPALITY, THRESHOLDS } from '../config';
 const MaoHistory = () => {
     const [logs, setLogs] = useState([]);
@@ -98,22 +99,36 @@ const MaoHistory = () => {
                     <button className="btn-sm btn-header" onClick={handleDownloadExcel} disabled={logs.length === 0}>⬇ Download CSV</button>
                 </header>
                 <div className="table-container">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                         <h3 className="section-title m-0">Recent Readings</h3>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            <label style={{ fontSize: '0.9rem', color: 'var(--text-light)', fontWeight: '600' }}>Filter by Farmer:</label>
-                            <select 
-                                className="select-input" 
-                                value={selectedFarmer}
-                                onChange={(e) => setSelectedFarmer(e.target.value)}
-                            >
-                                <option value="">All Farmers</option>
-                                {farmerList.map(farmer => (
-                                    <option key={farmer.farmer_id} value={farmer.farmer_id}>
-                                        {farmer.firstname} {farmer.lastname} ({farmer.control_id})
-                                    </option>
-                                ))}
-                            </select>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-700 whitespace-nowrap">Filter by Farmer:</label>
+                            <div className="relative flex items-center w-full sm:w-auto min-w-[240px]">
+                                <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base z-10">
+                                    <User size={16} />
+                                </span>
+                                <select 
+                                    className="w-full appearance-none pl-10 pr-10 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 font-medium shadow-sm hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150 cursor-pointer" 
+                                    value={selectedFarmer}
+                                    onChange={(e) => setSelectedFarmer(e.target.value)}
+                                >
+                                    <option value="" className="text-slate-800 bg-white py-2">All Farmers</option>
+                                    {farmerList.map((farmer) => (
+                                        <option
+                                            key={farmer.farmer_id}
+                                            value={farmer.farmer_id}
+                                            className="text-slate-800 bg-white py-2.5 px-3 hover:bg-emerald-50"
+                                        >
+                                            {farmer.firstname} {farmer.lastname} ({farmer.control_id})
+                                        </option>
+                                    ))}
+                                </select>
+                                <span className="absolute right-3.5 pointer-events-none text-slate-400 flex items-center">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <table className="styled-table">

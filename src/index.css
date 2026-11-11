@@ -1299,34 +1299,56 @@ body {
     }
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Global CSS Dropdown Reset & Options Styling
+───────────────────────────────────────────────────────────── */
+select {
+    width: 100% !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: none !important;
+}
+
+select option {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    padding: 10px 14px !important;
+    font-size: 0.95rem !important;
+}
+
+select option:checked {
+    background-color: #ecfdf5 !important;
+    color: #047857 !important;
+    font-weight: 600 !important;
+}
+
 /* Premium Select Dropdown */
 .select-input {
-    appearance: none;
-    background-color: var(--surface-solid);
-    border: 1.5px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 12px 40px 12px 2.5rem !important; /* pl-10 clear left padding for icon */
-    font-size: 0.95rem;
-    font-family: inherit;
-    font-weight: 500;
-    color: var(--text-dark);
-    cursor: pointer;
-    transition: var(--transition);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 16px;
-    box-shadow: var(--shadow-sm);
-    width: 100%;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    font-size: 0.875rem !important;
+    font-family: inherit !important;
+    font-weight: 500 !important;
+    color: #1e293b !important;
+    cursor: pointer !important;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+    width: 100% !important;
+    background-image: none !important;
 }
 .select-input:hover {
-    border-color: var(--primary-light);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+    border-color: #10b981 !important;
 }
 .select-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+    outline: none !important;
+    border-color: #059669 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -1336,8 +1358,18 @@ body {
 .relative { position: relative !important; }
 .absolute { position: absolute !important; }
 .left-3\.5, .left-3-5 { left: 0.875rem !important; }
+.right-3\.5 { right: 0.875rem !important; }
 .left-3 { left: 0.75rem !important; }
 .pointer-events-none { pointer-events: none !important; }
+.appearance-none { appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; }
+.cursor-pointer { cursor: pointer !important; }
+.z-10 { z-index: 10 !important; }
+.whitespace-nowrap { white-space: nowrap !important; }
+.min-w-\[240px\] { min-width: 240px !important; }
+.w-4 { width: 1rem !important; }
+.h-4 { height: 1rem !important; }
+.w-5 { width: 1.25rem !important; }
+.h-5 { height: 1.25rem !important; }
 
 .flex { display: flex !important; }
 .inline-flex { display: inline-flex !important; }
@@ -1406,6 +1438,13 @@ body {
 .border-slate-100 { border-color: #f1f5f9 !important; }
 .border-slate-200 { border-color: #e2e8f0 !important; }
 .border-slate-200\/80 { border-color: rgba(226, 232, 240, 0.8) !important; }
+.border-slate-300 { border-color: #cbd5e1 !important; }
+.hover\:border-emerald-500:hover { border-color: #10b981 !important; }
+
+@media (min-width: 640px) {
+    .sm\:flex-row { flex-direction: row !important; }
+    .sm\:items-center { align-items: center !important; }
+}
 
 .overflow-hidden { overflow: hidden !important; }
 .min-w-\[200px\] { min-width: 200px !important; }
