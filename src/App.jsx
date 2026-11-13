@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Logout from './pages/Logout';
+import ChangePassword from './pages/ChangePassword';
 import FarmerDashboard from './pages/FarmerDashboard';
 import FarmerHistory from './pages/FarmerHistory';
 import MaoDashboard from './pages/MaoDashboard';
@@ -23,6 +24,11 @@ function AppRoutes() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/change-password" element={
+          <ProtectedRoute allowedRoles={['farmer', 'mao']}>
+            <ChangePassword />
+          </ProtectedRoute>
+        } />
 
         <Route path="/farmer/dashboard" element={
           <ProtectedRoute allowedRoles={['farmer']}>

@@ -11,6 +11,10 @@ class Role(models.Model):
 
 class Account(AbstractUser):
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
+    must_change_password = models.BooleanField(
+        default=False,
+        help_text="Designates whether the user must change their password upon next login."
+    )
 
 class Farmer(models.Model):
     farmer_id = models.AutoField(primary_key=True)

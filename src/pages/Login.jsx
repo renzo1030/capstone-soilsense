@@ -28,6 +28,13 @@ const Login = () => {
             if (response.ok) {
                 sessionStorage.setItem('access_token', data.token);
                 sessionStorage.setItem('user_role', data.user.role);
+                sessionStorage.setItem('must_change_password', String(data.must_change_password));
+
+                if (data.must_change_password) {
+                    navigate('/change-password');
+                    return;
+                }
+
                 if (data.user.role === 'mao') {
                     navigate('/mao/dashboard');
                 } else if (data.user.role === 'farmer') {

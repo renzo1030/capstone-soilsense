@@ -8,7 +8,6 @@ import toast from 'react-hot-toast';
 const MaoRegisterFarmer = () => {
     const [formData, setFormData] = useState({
         control_id: '',
-        password: '',
         firstname: '',
         lastname: '',
         contact_number: '',
@@ -83,9 +82,9 @@ const MaoRegisterFarmer = () => {
                 return;
             }
             if (response.ok) {
-                toast.success(`Success! New farmer registered (ID: ${data.farmer_id}). Please assign hardware in the registry.`);
+                toast.success(`Success! New farmer registered (ID: ${data.farmer_id}). Default password: Farmer123`);
                 setFormData({
-                    control_id: '', password: '', firstname: '', lastname: '',
+                    control_id: '', firstname: '', lastname: '',
                     contact_number: '', barangay: ''
                 });
                 fetchFarmerList(); // Refresh list
@@ -233,24 +232,23 @@ const MaoRegisterFarmer = () => {
                                     </div>
                                 </div>
 
-                                {/* Temporary Password */}
-                                <div className="flex flex-col gap-1.5 mb-4">
-                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
-                                        Temporary Password
-                                    </label>
-                                    <div className="relative flex items-center">
-                                        <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
-                                            <Lock size={18} />
+                                {/* Default Temporary Password Notice */}
+                                <div className="mt-4 p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-xl text-left">
+                                    <div className="flex items-start gap-3">
+                                        <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg shrink-0 mt-0.5">
+                                            <Lock size={16} />
                                         </span>
-                                        <input
-                                            type="password"
-                                            name="password"
-                                            value={formData.password}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
-                                            placeholder="Secure Password"
-                                        />
+                                        <div className="text-xs text-slate-700 space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-semibold text-slate-800">Default Temporary Password:</span>
+                                                <code className="bg-emerald-100/80 px-2 py-0.5 rounded font-mono font-bold text-emerald-900 text-xs">
+                                                    Farmer123
+                                                </code>
+                                            </div>
+                                            <p className="text-slate-500 leading-relaxed">
+                                                New farmers will be automatically prompted to create their own strong, private password upon their first login.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

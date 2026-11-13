@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import transaction
 from django.utils import timezone
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 from .models import Account, Role, Farmer, MaoStaff, Farm, IoTDevice, SoilReading, SoilHealthStatus, Recommendation, Fertilizer
 from .serializers import AccountSerializer, SoilReadingSerializer
@@ -16,7 +18,7 @@ from django.db.models import Prefetch
 @permission_classes([AllowAny])
 def login_view(request):
     """
-    ERD-compliant Login Endpoint.
+    ERD-compliant Login Endpoint with First-Time Reset Inspection.
     """
     username = request.data.get('controlId') 
     password = request.data.get('password')
@@ -34,14 +36,64 @@ def login_view(request):
 
         return Response({
             'token': str(refresh.access_token),
+            'must_change_password': account.must_change_password,
             'user': {
                 'id': account.id,
                 'username': account.username,
-                'role': detected_role
+                'role': detected_role,
+                'must_change_password': account.must_change_password
             }
         })
     else:
         return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    """
+    Mandatory First-Time / Authenticated Password Reset Endpoint.
+    Validates old temporary password, complexity requirements, and updates state.
+    """
+    user = request.user
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+    confirm_password = request.data.get('confirm_password')
+
+    if not old_password or not new_password or not confirm_password:
+        return Response(
+            {'error': 'Current password, new password, and confirmation are required.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # 1. Verify current temporary password
+    if not user.check_password(old_password):
+        return Response({'error': 'Current password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 2. Check confirmation match
+    if new_password != confirm_password:
+        return Response({'error': 'New passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 3. Prevent re-using the default password
+    if new_password == 'Farmer123':
+        return Response(
+            {'error': 'You cannot reuse the default temporary password.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # 4. Enforce Django Password Validators (length, dictionary, similarity, custom complexity)
+    try:
+        validate_password(new_password, user=user)
+    except ValidationError as e:
+        return Response({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 5. Persist updated password and clear the flag
+    user.set_password(new_password)
+    user.must_change_password = False
+    user.save()
+
+    return Response({
+        'message': 'Password changed successfully. You may now access your dashboard.'
+    }, status=status.HTTP_200_OK)
 
 # =============================================================================
 #  IoT DATA INGESTION — Secured via per-device UID (replaces static API key)
@@ -218,18 +270,18 @@ def farmer_dashboard_data(request):
 @permission_classes([IsAuthenticated, IsMaoAdmin])
 def register_farmer(request):
     """
-    MAO Endpoint to register a new Farmer, Farmer Profile, and Farm atomically.
+    MAO Endpoint to register a new Farmer with default temporary credentials.
     """
     try:
         data = request.data
-        control_id = data.get('control_id')
-        password = data.get('password')
-        contact_number = data.get('contact_number')
+        control_id = data.get('control_id', '').strip().upper()
+        contact_number = data.get('contact_number', '').strip()
+        default_password = data.get('password') or 'Farmer123'
         
+        if not control_id:
+            return Response({'error': 'Control ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
         if not contact_number or not contact_number.isdigit() or len(contact_number) < 10:
             return Response({'error': 'Invalid contact number format.'}, status=status.HTTP_400_BAD_REQUEST)
-        if not password or len(password) < 8:
-            return Response({'error': 'Password must be at least 8 characters long.'}, status=status.HTTP_400_BAD_REQUEST)
         
         with transaction.atomic():
             farmer_role = Role.objects.get(role_name='farmer')
@@ -239,21 +291,22 @@ def register_farmer(request):
                 
             new_account = Account.objects.create_user(
                 username=control_id,
-                password=password,
-                role=farmer_role
+                password=default_password,
+                role=farmer_role,
+                must_change_password=True
             )
             
             farmer_profile = Farmer.objects.create(
                 account=new_account,
-                firstname=data.get('firstname'),
-                lastname=data.get('lastname'),
-                contact_number=data.get('contact_number'),
-                email=data.get('email'),
-                barangay=data.get('barangay')
+                firstname=data.get('firstname', '').strip(),
+                lastname=data.get('lastname', '').strip(),
+                contact_number=contact_number,
+                email=data.get('email', '').strip() or None,
+                barangay=data.get('barangay', '').strip()
             )
             
         return Response({
-            'message': 'Farmer registered successfully!',
+            'message': 'Farmer registered successfully! Default password is "Farmer123".',
             'farmer_id': farmer_profile.farmer_id
         }, status=status.HTTP_201_CREATED)
 

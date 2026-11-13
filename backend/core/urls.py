@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 urlpatterns = [
     path('auth/login/', views.login_view, name='api_login'),
+    path('auth/change-password/', views.change_password, name='api_change_password'),
     path('iot/upload/', views.iot_data_ingest, name='api_iot_upload'),
     path('farmer/logs/', views.farmer_logs, name='api_farmer_logs'),
     path('farmer/dashboard/', views.farmer_dashboard_data, name='api_farmer_dashboard'),
