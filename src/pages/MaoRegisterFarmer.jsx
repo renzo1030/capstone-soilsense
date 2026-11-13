@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import ConfirmModal from '../components/ConfirmModal';
-import { UserPlus, MapPin, Phone, User, Hash, Lock, Trash2, RefreshCw, Cpu, Ruler, Eye, X, CheckCircle2 } from 'lucide-react';
+import { UserPlus, MapPin, Phone, User, Hash, Lock, Trash2, RefreshCw, Cpu, Ruler, Eye, X, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import toast from 'react-hot-toast';
 
@@ -15,6 +15,7 @@ const MaoRegisterFarmer = () => {
     });
     const [loading, setLoading] = useState(false);
     const [registeredSuccess, setRegisteredSuccess] = useState(null);
+    const [formError, setFormError] = useState('');
 
     // Farmer list state
     const [farmerList, setFarmerList] = useState([]);
@@ -55,11 +56,13 @@ const MaoRegisterFarmer = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: name === 'control_id' ? value.toUpperCase() : value }));
+        if (formError) setFormError('');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setFormError('');
         const token = sessionStorage.getItem('access_token');
         try {
             const response = await fetch(`${API_BASE_URL}/mao/register-farmer/`, {
@@ -90,13 +93,17 @@ const MaoRegisterFarmer = () => {
                     fullname: `${formData.firstname} ${formData.lastname}`,
                     barangay: formData.barangay
                 });
+                setFormError('');
                 setFormData({
                     control_id: '', firstname: '', lastname: '',
                     contact_number: '', barangay: ''
                 });
                 fetchFarmerList(); // Refresh list
             } else {
-                toast.error(data.error || 'Failed to register farmer.');
+                const errMsg = data.error || 'Failed to register farmer.';
+                toast.error(errMsg);
+                setFormError(errMsg);
+                setRegisteredSuccess(null);
             }
         } catch {
             toast.error('Connection error. Is the Django server running?');
@@ -230,6 +237,31 @@ const MaoRegisterFarmer = () => {
                             aria-label="Dismiss banner"
                         >
                             <X size={20} />
+                        </button>
+                    </div>
+                )}
+
+                {/* In-Page Duplicate / Validation Error Alert */}
+                {formError && (
+                    <div className="mb-6 p-4 bg-rose-50 border border-rose-300 rounded-2xl flex items-start justify-between text-left shadow-sm animate-in fade-in duration-200">
+                        <div className="flex items-start gap-3.5">
+                            <div className="p-2 bg-rose-100 text-rose-600 rounded-xl mt-0.5 shrink-0">
+                                <AlertTriangle size={22} />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-bold text-rose-900">Registration Blocked: Duplicate Entry</h4>
+                                <p className="text-xs text-rose-700 mt-1 leading-relaxed">
+                                    {formError}
+                                </p>
+                            </div>
+                        </div>
+                        <button 
+                            type="button" 
+                            onClick={() => setFormError('')} 
+                            className="text-rose-400 hover:text-rose-700 p-1 rounded-lg transition shrink-0 ml-2"
+                            aria-label="Dismiss error"
+                        >
+                            <X size={18} />
                         </button>
                     </div>
                 )}

@@ -331,18 +331,36 @@ def farmer_dashboard_data(request):
 def register_farmer(request):
     """
     MAO Endpoint to register a new Farmer with default temporary credentials.
+    Includes duplicate detection across name and contact number.
     """
     try:
         data = request.data
         control_id = data.get('control_id', '').strip().upper()
+        firstname = data.get('firstname', '').strip()
+        lastname = data.get('lastname', '').strip()
         contact_number = data.get('contact_number', '').strip()
         default_password = data.get('password') or 'Farmer123'
         
         if not control_id:
             return Response({'error': 'Control ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not firstname or not lastname:
+            return Response({'error': 'First name and last name are required.'}, status=status.HTTP_400_BAD_REQUEST)
         if not contact_number or not contact_number.isdigit() or len(contact_number) < 10:
             return Response({'error': 'Invalid contact number format.'}, status=status.HTTP_400_BAD_REQUEST)
         
+        # ── Duplicate Prevention Check ────────────────────────────────
+        # Query candidates by case-insensitive name match, then verify decrypted contact_number
+        candidate_farmers = Farmer.objects.filter(
+            firstname__iexact=firstname,
+            lastname__iexact=lastname
+        )
+        for existing in candidate_farmers:
+            if existing.contact_number and existing.contact_number.strip() == contact_number:
+                return Response(
+                    {'error': 'A farmer profile with this exact name and contact number already exists in the registry.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         with transaction.atomic():
             farmer_role = Role.objects.get(role_name='farmer')
             
@@ -358,8 +376,8 @@ def register_farmer(request):
             
             farmer_profile = Farmer.objects.create(
                 account=new_account,
-                firstname=data.get('firstname', '').strip(),
-                lastname=data.get('lastname', '').strip(),
+                firstname=firstname,
+                lastname=lastname,
                 contact_number=contact_number,
                 email=data.get('email', '').strip() or None,
                 barangay=data.get('barangay', '').strip()
