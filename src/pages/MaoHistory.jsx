@@ -10,7 +10,7 @@ const MaoHistory = () => {
 
     useEffect(() => {
         const fetchFarmers = async () => {
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             if (!token) return;
             try {
                 const response = await fetch(`${API_BASE_URL}/mao/list-farmers/`, {
@@ -29,7 +29,7 @@ const MaoHistory = () => {
 
     useEffect(() => {
         const fetchLogs = async () => {
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             if (!token) return;
             try {
                 const url = selectedFarmer 

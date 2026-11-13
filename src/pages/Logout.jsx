@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 const Logout = () => {
     useEffect(() => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user_role');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('user_role');
     }, []);
     return (
         <div className="login-wrapper">

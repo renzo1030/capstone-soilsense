@@ -26,8 +26,8 @@ const Login = () => {
             });
             const data = await response.json();
             if (response.ok) {
-                localStorage.setItem('access_token', data.token);
-                localStorage.setItem('user_role', data.user.role);
+                sessionStorage.setItem('access_token', data.token);
+                sessionStorage.setItem('user_role', data.user.role);
                 if (data.user.role === 'mao') {
                     navigate('/mao/dashboard');
                 } else if (data.user.role === 'farmer') {

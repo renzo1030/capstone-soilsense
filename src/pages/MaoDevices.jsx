@@ -44,7 +44,7 @@ const MaoDevices = () => {
     // ── Fetch Functions ──
 
     const fetchDevices = useCallback(async () => {
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         if (!token) return;
         try {
             const response = await fetch(`${API_BASE_URL}/mao/device-list/`, {
@@ -66,7 +66,7 @@ const MaoDevices = () => {
     }, []);
 
     const fetchFarmers = useCallback(async () => {
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         if (!token) return;
         try {
             const response = await fetch(`${API_BASE_URL}/mao/list-farmers/`, {
@@ -82,7 +82,7 @@ const MaoDevices = () => {
     }, []);
 
     const fetchFarms = useCallback(async () => {
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         if (!token) return;
         try {
             const response = await fetch(`${API_BASE_URL}/mao/farms/`, {
@@ -115,7 +115,7 @@ const MaoDevices = () => {
         setFarmFormLoading(true);
         setFarmFormStatus({ type: '', message: '' });
 
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         try {
             const response = await fetch(`${API_BASE_URL}/mao/register-farm/`, {
                 method: 'POST',
@@ -160,7 +160,7 @@ const MaoDevices = () => {
         setDeviceFormLoading(true);
         setDeviceFormStatus({ type: '', message: '' });
 
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         try {
             const response = await fetch(`${API_BASE_URL}/mao/register-device/`, {
                 method: 'POST',
@@ -201,7 +201,7 @@ const MaoDevices = () => {
 
     const handleUnassign = async () => {
         setUnassignLoading(true);
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         try {
             const res = await fetch(`${API_BASE_URL}/mao/unassign-device/${unassignModal.id}/`, {
                 method: 'PATCH',
@@ -238,7 +238,7 @@ const MaoDevices = () => {
     const handleReassign = async () => {
         if (!reassignFarmId) { toast.error('Select a farm.'); return; }
         setReassignLoading(true);
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         try {
             const res = await fetch(`${API_BASE_URL}/mao/assign-device/${reassignModal.device.device_id}/`, {
                 method: 'PATCH',

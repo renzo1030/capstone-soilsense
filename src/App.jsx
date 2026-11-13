@@ -8,12 +8,16 @@ import MaoDevices from './pages/MaoDevices';
 import MaoHistory from './pages/MaoHistory';
 import MaoRegisterFarmer from './pages/MaoRegisterFarmer';
 import ProtectedRoute from './components/ProtectedRoute';
+import useIdleTimer from './hooks/useIdleTimer';
 
 import { Toaster } from 'react-hot-toast';
 
-function App() {
+// Inner component so useNavigate (required by useIdleTimer) has Router context
+function AppRoutes() {
+  useIdleTimer(15 * 60 * 1000); // 15-minute idle auto-logout
+
   return (
-    <Router>
+    <>
       <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -52,6 +56,14 @@ function App() {
         } />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppRoutes />
     </Router>
   );
 }

@@ -28,7 +28,7 @@ const MaoRegisterFarmer = () => {
     const closeProfileModal = () => setProfileModal({ open: false, farmer: null });
     const fetchFarmerList = useCallback(async () => {
         setListLoading(true);
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         try {
             const res = await fetch(`${API_BASE_URL}/mao/list-farmers/`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -60,7 +60,7 @@ const MaoRegisterFarmer = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         try {
             const response = await fetch(`${API_BASE_URL}/mao/register-farmer/`, {
                 method: 'POST',
@@ -105,7 +105,7 @@ const MaoRegisterFarmer = () => {
 
     const handleDelete = async () => {
         setDeleteLoading(true);
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         try {
             const res = await fetch(`${API_BASE_URL}/mao/delete-farmer/${modal.id}/`, {
                 method: 'DELETE',

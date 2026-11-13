@@ -9,7 +9,7 @@ const FarmerDashboard = () => {
 
     useEffect(() => {
         const fetchDashboard = async () => {
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             if (!token) return;
             try {
                 const response = await fetch(`${API_BASE_URL}/farmer/dashboard/`, {

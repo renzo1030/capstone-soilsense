@@ -7,7 +7,7 @@ const FarmerHistory = () => {
     const [farmerInfo, setFarmerInfo] = useState(null);
     useEffect(() => {
         const fetchFarmerInfo = async () => {
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             if (!token) return;
             try {
                 const response = await fetch(`${API_BASE_URL}/farmer/dashboard/`, {
@@ -26,7 +26,7 @@ const FarmerHistory = () => {
             }
         };
         const fetchLogs = async () => {
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             if (!token) return;
             try {
                 const response = await fetch(`${API_BASE_URL}/farmer/logs/`, {
