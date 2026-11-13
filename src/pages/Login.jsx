@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sprout, Hash, Lock, Eye, EyeOff } from 'lucide-react';
+import { Sprout, Hash, Lock, Eye, EyeOff, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 const Login = () => {
     const navigate = useNavigate();
@@ -41,7 +41,7 @@ const Login = () => {
                     navigate('/farmer/dashboard');
                 }
             } else {
-                setError(data.error || 'Invalid credentials.');
+                setError(data.error || data.detail || 'Invalid username or password.');
             }
         } catch {
             setError('Failed to connect to the server. Is Django running?');
@@ -58,6 +58,23 @@ const Login = () => {
                 </div>
                 <p className="subtitle">Precision Agriculture for Rice Farmers in Unisan, Quezon</p>
                 <form id="loginForm" onSubmit={handleSubmit}>
+                    {error && (
+                        <div 
+                            className={`p-3.5 mb-4 rounded-xl text-xs flex items-start gap-2.5 text-left border ${
+                                error.includes('locked') || error.includes('throttled')
+                                    ? 'bg-amber-50 border-amber-300 text-amber-900'
+                                    : 'bg-rose-50 border-rose-300 text-rose-800'
+                            }`}
+                            role="alert"
+                        >
+                            {error.includes('locked') || error.includes('throttled') ? (
+                                <ShieldAlert size={18} className="text-amber-700 shrink-0 mt-0.5" />
+                            ) : (
+                                <AlertTriangle size={18} className="text-rose-600 shrink-0 mt-0.5" />
+                            )}
+                            <span className="font-medium leading-relaxed">{error}</span>
+                        </div>
+                    )}
                     <div className="form-group input-with-icon">
                         <label>Control ID</label>
                         <div className="input-icon-wrapper">
@@ -98,7 +115,6 @@ const Login = () => {
                             </button>
                         </div>
                     </div>
-                    {error && <div className="error-message">{error}</div>}
                     <button type="submit" className="btn-submit" disabled={isLoading}>
                         {isLoading ? 'Connecting to Server...' : 'Login to Dashboard'}
                     </button>

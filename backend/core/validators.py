@@ -38,3 +38,4 @@ class ComplexPasswordValidator:
             "Your password must contain at least 8 characters, including uppercase, "
             "lowercase, numeric, and special characters."
         )
+

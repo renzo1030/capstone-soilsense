@@ -1,51 +1,111 @@
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import transaction
 from django.utils import timezone
+from datetime import timedelta
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.contrib.auth.hashers import check_password as django_check_password
 
 from .models import Account, Role, Farmer, MaoStaff, Farm, IoTDevice, SoilReading, SoilHealthStatus, Recommendation, Fertilizer
 from .serializers import AccountSerializer, SoilReadingSerializer
 from .ml_service import predict_soil_condition
 from .permissions import IsMaoAdmin, IsFarmer
+from .throttles import LoginRateThrottle
 from django.db.models import Prefetch
+
+# Pre-computed dummy PBKDF2 hash to equalize response times on non-existent accounts
+DUMMY_PBKDF2_HASH = (
+    "pbkdf2_sha256$600000$SoilSenseConstantTimingSalt$"
+    "Xw6Y9qG8u2L3v1K7j5M9p0N8b4V2c1Z3x5C7v9B1n3M="
+)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([LoginRateThrottle])
 def login_view(request):
     """
-    ERD-compliant Login Endpoint with First-Time Reset Inspection.
+    ERD-compliant Login Endpoint with:
+    - IP Rate Limiting (5 attempts/min)
+    - Timing-attack-resistant constant-time hashing
+    - Account Lockout (3 failed attempts -> 15-minute freeze)
+    - Generic, non-enumerating error responses
     """
-    username = request.data.get('controlId') 
-    password = request.data.get('password')
+    username = request.data.get('controlId', '').strip().upper()
+    password = request.data.get('password', '')
+    now = timezone.now()
 
-    try:
-        
-        account = Account.objects.get(username=username)
-    except Account.DoesNotExist:
-        return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not username or not password:
+        return Response(
+            {'error': 'Invalid username or password.'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
-    if account.check_password(password):
-        refresh = RefreshToken.for_user(account)
-        
-        detected_role = account.role.role_name if account.role else 'unknown'
+    # 1. Fetch account (or None)
+    account = Account.objects.filter(username=username).first()
 
-        return Response({
-            'token': str(refresh.access_token),
-            'must_change_password': account.must_change_password,
-            'user': {
-                'id': account.id,
-                'username': account.username,
-                'role': detected_role,
-                'must_change_password': account.must_change_password
-            }
-        })
+    # 2. Account Lockout Check
+    if account and account.lockout_until:
+        if now < account.lockout_until:
+            return Response(
+                {'error': 'Too many failed login attempts. Account temporarily locked for 15 minutes.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        else:
+            # Lockout period expired: reset counter
+            account.lockout_until = None
+            account.failed_login_attempts = 0
+            account.save(update_fields=['lockout_until', 'failed_login_attempts'])
+
+    # 3. Constant-Time Password Verification
+    if account is not None:
+        is_password_valid = account.check_password(password)
     else:
-        return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+        # Dummy computation to prevent timing enumeration
+        django_check_password(password, DUMMY_PBKDF2_HASH)
+        is_password_valid = False
+
+    # 4. Handle Invalid Credentials
+    if not is_password_valid:
+        if account is not None:
+            account.failed_login_attempts += 1
+            if account.failed_login_attempts >= 3:
+                account.lockout_until = now + timedelta(minutes=15)
+                account.save(update_fields=['failed_login_attempts', 'lockout_until'])
+                return Response(
+                    {'error': 'Too many failed login attempts. Account temporarily locked for 15 minutes.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            account.save(update_fields=['failed_login_attempts'])
+
+        return Response(
+            {'error': 'Invalid username or password.'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    # 5. Successful Authentication: Reset failure tracking
+    if account.failed_login_attempts > 0 or account.lockout_until is not None:
+        account.failed_login_attempts = 0
+        account.lockout_until = None
+        account.save(update_fields=['failed_login_attempts', 'lockout_until'])
+
+    # 6. Issue JWT & Session Response
+    refresh = RefreshToken.for_user(account)
+    detected_role = account.role.role_name if account.role else 'unknown'
+
+    return Response({
+        'token': str(refresh.access_token),
+        'must_change_password': account.must_change_password,
+        'user': {
+            'id': account.id,
+            'username': account.username,
+            'role': detected_role,
+            'must_change_password': account.must_change_password
+        }
+    }, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

@@ -19,7 +19,41 @@ function AppRoutes() {
 
   return (
     <>
-      <Toaster position="top-right" />
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          duration: 5000,
+          style: {
+            background: '#ffffff',
+            color: '#0f172a',
+            fontSize: '13.5px',
+            fontWeight: '500',
+            padding: '14px 18px',
+            borderRadius: '12px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            border: '1px solid #e2e8f0',
+            maxWidth: '440px',
+          },
+          success: {
+            style: {
+              borderLeft: '5px solid #059669',
+            },
+            iconTheme: {
+              primary: '#059669',
+              secondary: '#ffffff',
+            },
+          },
+          error: {
+            style: {
+              borderLeft: '5px solid #e11d48',
+            },
+            iconTheme: {
+              primary: '#e11d48',
+              secondary: '#ffffff',
+            },
+          },
+        }}
+      />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />

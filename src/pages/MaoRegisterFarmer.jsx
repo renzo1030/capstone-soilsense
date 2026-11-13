@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import ConfirmModal from '../components/ConfirmModal';
-import { UserPlus, MapPin, Phone, User, Hash, Lock, Trash2, RefreshCw, Cpu, Ruler, Eye, X } from 'lucide-react';
+import { UserPlus, MapPin, Phone, User, Hash, Lock, Trash2, RefreshCw, Cpu, Ruler, Eye, X, CheckCircle2 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import toast from 'react-hot-toast';
 
@@ -14,6 +14,7 @@ const MaoRegisterFarmer = () => {
         barangay: ''
     });
     const [loading, setLoading] = useState(false);
+    const [registeredSuccess, setRegisteredSuccess] = useState(null);
 
     // Farmer list state
     const [farmerList, setFarmerList] = useState([]);
@@ -83,6 +84,12 @@ const MaoRegisterFarmer = () => {
             }
             if (response.ok) {
                 toast.success(`Success! New farmer registered (ID: ${data.farmer_id}). Default password: Farmer123`);
+                setRegisteredSuccess({
+                    control_id: formData.control_id,
+                    farmer_id: data.farmer_id,
+                    fullname: `${formData.firstname} ${formData.lastname}`,
+                    barangay: formData.barangay
+                });
                 setFormData({
                     control_id: '', firstname: '', lastname: '',
                     contact_number: '', barangay: ''
@@ -197,6 +204,35 @@ const MaoRegisterFarmer = () => {
                         <p>Create a new farmer account.</p>
                     </div>
                 </header>
+
+                {/* Prominent Dismissible Confirmation Banner */}
+                {registeredSuccess && (
+                    <div className="mb-6 p-4 bg-emerald-600 text-white rounded-2xl shadow-md border border-emerald-500 flex items-start justify-between animate-in fade-in duration-200">
+                        <div className="flex items-start gap-3.5">
+                            <div className="p-2 bg-emerald-700/90 rounded-xl mt-0.5 shrink-0">
+                                <CheckCircle2 size={24} className="text-white" />
+                            </div>
+                            <div className="text-left">
+                                <h4 className="text-base font-bold text-white">Farmer Registered Successfully!</h4>
+                                <p className="text-xs text-emerald-100 mt-1">
+                                    Account created for <span className="font-semibold text-white">{registeredSuccess.fullname}</span> ({registeredSuccess.barangay}) with Control ID <span className="font-mono bg-emerald-800/90 px-2 py-0.5 rounded text-white font-bold tracking-wide">{registeredSuccess.control_id}</span>.
+                                </p>
+                                <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+                                    <span className="bg-emerald-700/90 px-2.5 py-1 rounded-lg">Temporary Password: <strong>Farmer123</strong></span>
+                                    <span className="text-emerald-200 text-[11px]">• Mandatory password change required upon initial login</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button 
+                            type="button" 
+                            onClick={() => setRegisteredSuccess(null)}
+                            className="text-emerald-200 hover:text-white p-1 rounded-lg transition shrink-0 ml-2"
+                            aria-label="Dismiss banner"
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
+                )}
 
                 {/* Register Farmer Form Container */}
                 <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden mb-10">

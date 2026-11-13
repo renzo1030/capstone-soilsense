@@ -15,6 +15,15 @@ class Account(AbstractUser):
         default=False,
         help_text="Designates whether the user must change their password upon next login."
     )
+    failed_login_attempts = models.PositiveIntegerField(
+        default=0,
+        help_text="Tracks consecutive failed authentication attempts."
+    )
+    lockout_until = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp until which the account is temporarily locked out."
+    )
 
 class Farmer(models.Model):
     farmer_id = models.AutoField(primary_key=True)
