@@ -17,6 +17,7 @@ urlpatterns = [
     path('mao/logs/', views.mao_logs_data, name='api_mao_logs'),
     path('mao/farms/', views.mao_farms_data, name='api_mao_farms'),
     path('mao/list-farmers/', views.list_farmers, name='api_list_farmers'),
+    path('mao/farmers/<int:farmer_id>/reset-password/', views.reset_farmer_password, name='api_reset_farmer_password'),
     path('mao/delete-farmer/<int:account_id>/', views.delete_farmer, name='api_delete_farmer'),
     path('mao/unregister-farm/<int:farm_id>/', views.unregister_farm, name='api_unregister_farm'),
 ]

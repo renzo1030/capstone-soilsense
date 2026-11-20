@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import ConfirmModal from '../components/ConfirmModal';
-import { UserPlus, MapPin, Phone, User, Hash, Lock, Trash2, RefreshCw, Cpu, Ruler, Eye, X, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { MapPin, Phone, User, Hash, Lock, Trash2, RefreshCw, Eye, X, CheckCircle2, AlertTriangle, KeyRound, Copy, Check } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import toast from 'react-hot-toast';
 
@@ -21,6 +21,17 @@ const MaoRegisterFarmer = () => {
     const [listLoading, setListLoading] = useState(true);
     const [modal, setModal] = useState({ open: false, id: null, name: '' });
     const [deleteLoading, setDeleteLoading] = useState(false);
+
+    // Admin-Assisted Password Reset State
+    const [resetConfirmModal, setResetConfirmModal] = useState({ open: false, farmer: null });
+    const [resetLoading, setResetLoading] = useState(false);
+    const [tempPasswordModal, setTempPasswordModal] = useState({
+        open: false,
+        control_id: '',
+        farmer_name: '',
+        temporary_password: '',
+    });
+    const [copied, setCopied] = useState(false);
 
     // Profile Modal State
     const [profileModal, setProfileModal] = useState({ open: false, farmer: null });
@@ -143,6 +154,57 @@ const MaoRegisterFarmer = () => {
         }
     };
 
+    const openResetConfirmModal = (farmer) => {
+        setResetConfirmModal({ open: true, farmer });
+    };
+
+    const handleResetPassword = async () => {
+        const farmer = resetConfirmModal.farmer;
+        if (!farmer) return;
+        setResetLoading(true);
+        const token = sessionStorage.getItem('access_token');
+        try {
+            const res = await fetch(`${API_BASE_URL}/mao/farmers/${farmer.farmer_id}/reset-password/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (res.status === 401) {
+                window.location.href = '/logout';
+                return;
+            }
+            const data = await res.json();
+            if (res.ok) {
+                setResetConfirmModal({ open: false, farmer: null });
+                setCopied(false);
+                setTempPasswordModal({
+                    open: true,
+                    control_id: data.control_id,
+                    farmer_name: data.farmer_name,
+                    temporary_password: data.temporary_password,
+                });
+                toast.success(`Temporary password generated for ${data.control_id}.`);
+            } else {
+                toast.error(data.error || 'Failed to reset farmer password.');
+            }
+        } catch (err) {
+            console.error('Password reset failed:', err);
+            toast.error('Connection error while resetting password.');
+        } finally {
+            setResetLoading(false);
+        }
+    };
+
+    const handleCopyPassword = async () => {
+        if (!tempPasswordModal.temporary_password) return;
+        try {
+            await navigator.clipboard.writeText(tempPasswordModal.temporary_password);
+            setCopied(true);
+            toast.success('Temporary password copied to clipboard.');
+        } catch {
+            toast.error('Unable to copy automatically. Please copy the password manually.');
+        }
+    };
+
     return (
         <>
             {/* Profile Modal */}
@@ -202,6 +264,91 @@ const MaoRegisterFarmer = () => {
                 onCancel={() => setModal({ open: false, id: null, name: '' })}
                 loading={deleteLoading}
             />
+
+            {/* Confirm Password Reset Modal */}
+            <ConfirmModal
+                isOpen={resetConfirmModal.open}
+                title="Reset Farmer Password"
+                message={`Generate a new one-time temporary password for ${resetConfirmModal.farmer?.firstname} ${resetConfirmModal.farmer?.lastname} (${resetConfirmModal.farmer?.control_id})? Their current password will stop working immediately and they will be prompted to create a new password on next login.`}
+                onConfirm={handleResetPassword}
+                onCancel={() => !resetLoading && setResetConfirmModal({ open: false, farmer: null })}
+                loading={resetLoading}
+                confirmLabel="Yes, Generate Password"
+                loadingLabel="Generating..."
+            />
+
+            {/* One-Time Temporary Password Modal */}
+            {tempPasswordModal.open && (
+                <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="temp-pw-title">
+                    <div className="modal-container" style={{ maxWidth: '460px' }}>
+                        <div className="modal-header-container">
+                            <div className="modal-icon-wrapper modal-icon-primary">
+                                <KeyRound size={22} />
+                            </div>
+                            <h3 id="temp-pw-title" className="modal-title">Temporary Password Generated</h3>
+                            <button
+                                type="button"
+                                onClick={() => setTempPasswordModal({ open: false, control_id: '', farmer_name: '', temporary_password: '' })}
+                                className="btn-close"
+                                aria-label="Close modal"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div className="modal-body-text" style={{ textAlign: 'left', marginBottom: '20px' }}>
+                            <p style={{ marginBottom: '12px' }}>
+                                Farmer: <strong>{tempPasswordModal.farmer_name}</strong>
+                                <br />
+                                Control ID: <strong>{tempPasswordModal.control_id}</strong>
+                            </p>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: '12px',
+                                    background: 'var(--primary-bg)',
+                                    border: '1.5px solid var(--success-border)',
+                                    borderRadius: '10px',
+                                    padding: '12px 14px',
+                                    marginBottom: '14px',
+                                }}
+                            >
+                                <div>
+                                    <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--forest-800)', display: 'block' }}>
+                                        One-Time Temporary Password
+                                    </span>
+                                    <code style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--forest-900)' }}>
+                                        {tempPasswordModal.temporary_password}
+                                    </code>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleCopyPassword}
+                                    className="btn-confirm primary"
+                                    style={{ padding: '8px 14px', fontSize: '0.85rem', flexShrink: 0 }}
+                                >
+                                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                                    {copied ? 'Copied' : 'Copy'}
+                                </button>
+                            </div>
+                            <p style={{ fontSize: '0.86rem', color: 'var(--text-body)', margin: 0 }}>
+                                Provide this temporary password to the farmer. They will be required to set a new password upon their next login.
+                            </p>
+                        </div>
+                        <div className="modal-footer">
+                            <button
+                                type="button"
+                                onClick={() => setTempPasswordModal({ open: false, control_id: '', farmer_name: '', temporary_password: '' })}
+                                className="btn-confirm primary"
+                                style={{ width: '100%' }}
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <main className="content">
                 <header className="dashboard-header">
                     <div>
@@ -461,12 +608,19 @@ const MaoRegisterFarmer = () => {
                                         <td>{farmer.barangay}</td>
                                         <td>{farmer.contact_number}</td>
                                         <td>
-                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                                 <button
                                                     onClick={() => openProfileModal(farmer)}
                                                     className="btn-view"
                                                 >
                                                     <Eye size={14} /> View
+                                                </button>
+                                                <button
+                                                    onClick={() => openResetConfirmModal(farmer)}
+                                                    className="btn-unassign"
+                                                    title="Reset farmer password"
+                                                >
+                                                    <KeyRound size={14} /> Reset Password
                                                 </button>
                                                 <button
                                                     onClick={() => openDeleteModal(farmer)}

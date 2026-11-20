@@ -1,3 +1,4 @@
+import secrets
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -133,10 +134,10 @@ def change_password(request):
     if new_password != confirm_password:
         return Response({'error': 'New passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # 3. Prevent re-using the default password
-    if new_password == 'Farmer123':
+    # 3. Prevent re-using the default or current temporary password
+    if new_password == 'Farmer123' or new_password == old_password:
         return Response(
-            {'error': 'You cannot reuse the default temporary password.'},
+            {'error': 'New password must be different from your current temporary password.'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -785,6 +786,45 @@ def list_farmers(request):
             'farm_area_sqm': farm.total_area_sqm if farm else 'N/A',
         })
     return Response(data)
+
+_TEMP_LETTERS = 'ABCDEFGHJKMNPQRSTUVWXYZ'  # Excludes I, L, O
+_TEMP_DIGITS = '23456789'                  # Excludes 0, 1
+_TEMP_ALPHABET = _TEMP_LETTERS + _TEMP_DIGITS
+
+def _generate_temp_password(length=8):
+    chars = [secrets.choice(_TEMP_LETTERS), secrets.choice(_TEMP_DIGITS)]
+    chars.extend(secrets.choice(_TEMP_ALPHABET) for _ in range(length - 2))
+    secrets.SystemRandom().shuffle(chars)
+    return ''.join(chars)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
+def reset_farmer_password(request, farmer_id):
+    """
+    MAO Admin-Assisted Password Reset Endpoint.
+    Generates an unambiguous 8-character temporary password, forces reset on next login,
+    unlocks any prior brute-force lockout, and returns the credential once without logging it.
+    """
+    try:
+        farmer = Farmer.objects.select_related('account').get(farmer_id=farmer_id)
+    except Farmer.DoesNotExist:
+        return Response({'error': 'Farmer not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    account = farmer.account
+    temp_password = _generate_temp_password(8)
+
+    account.set_password(temp_password)
+    account.must_change_password = True
+    account.failed_login_attempts = 0
+    account.lockout_until = None
+    account.save(update_fields=['password', 'must_change_password', 'failed_login_attempts', 'lockout_until'])
+
+    return Response({
+        'message': 'Temporary password generated successfully.',
+        'temporary_password': temp_password,
+        'farmer_name': f"{farmer.firstname} {farmer.lastname}",
+        'control_id': account.username,
+    }, status=status.HTTP_200_OK)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated, IsMaoAdmin])
