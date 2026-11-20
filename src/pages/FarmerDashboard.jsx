@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Droplets, Beaker, Sprout, Wind, Activity } from 'lucide-react';
-import Sidebar from '../components/Sidebar';
 import { API_BASE_URL, THRESHOLDS } from '../config';
 
 const FarmerDashboard = () => {
@@ -84,7 +83,6 @@ const FarmerDashboard = () => {
     if (loading) {
         return (
             <>
-                <Sidebar role="farmer" />
                 <main className="content">
                     <header className="dashboard-header">
                         <div style={{ width: '100%' }}>
@@ -109,7 +107,6 @@ const FarmerDashboard = () => {
     if (!r) {
         return (
             <>
-                <Sidebar role="farmer" />
                 <main className="content">
                     <header className="dashboard-header">
                         <div>
@@ -132,7 +129,6 @@ const FarmerDashboard = () => {
 
     return (
         <>
-            <Sidebar role="farmer" />
             <main className="content">
                 <header className="dashboard-header">
                     <div>

@@ -19,6 +19,8 @@ const useIdleTimer = (timeoutMs = 15 * 60 * 1000) => {
   const handleLogout = useCallback(() => {
     sessionStorage.removeItem('access_token');
     sessionStorage.removeItem('user_role');
+    sessionStorage.removeItem('username');
+    sessionStorage.removeItem('must_change_password');
     navigate('/login?reason=idle_timeout', { replace: true });
   }, [navigate]);
 

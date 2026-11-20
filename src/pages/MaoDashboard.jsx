@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL, MUNICIPALITY, THRESHOLDS } from '../config';
 const MaoDashboard = () => {
@@ -35,7 +34,6 @@ const MaoDashboard = () => {
     if (loading) {
         return (
             <>
-                <Sidebar role="mao" />
                 <main className="content">
                     <header className="dashboard-header">
                         <div style={{ width: '100%' }}>
@@ -61,7 +59,6 @@ const MaoDashboard = () => {
     if (!data) return null;
     return (
         <>
-            <Sidebar role="mao" />
             <main className="content">
                 <header className="dashboard-header">
                     <div>

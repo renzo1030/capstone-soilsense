@@ -9,6 +9,7 @@ import MaoDevices from './pages/MaoDevices';
 import MaoHistory from './pages/MaoHistory';
 import MaoRegisterFarmer from './pages/MaoRegisterFarmer';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
 import useIdleTimer from './hooks/useIdleTimer';
 
 import { Toaster } from 'react-hot-toast';
@@ -66,32 +67,44 @@ function AppRoutes() {
 
         <Route path="/farmer/dashboard" element={
           <ProtectedRoute allowedRoles={['farmer']}>
-            <FarmerDashboard />
+            <Layout role="farmer">
+              <FarmerDashboard />
+            </Layout>
           </ProtectedRoute>
         } />
         <Route path="/farmer/history" element={
           <ProtectedRoute allowedRoles={['farmer']}>
-            <FarmerHistory />
+            <Layout role="farmer">
+              <FarmerHistory />
+            </Layout>
           </ProtectedRoute>
         } />
         <Route path="/mao/dashboard" element={
           <ProtectedRoute allowedRoles={['mao']}>
-            <MaoDashboard />
+            <Layout role="mao">
+              <MaoDashboard />
+            </Layout>
           </ProtectedRoute>
         } />
         <Route path="/mao/devices" element={
           <ProtectedRoute allowedRoles={['mao']}>
-            <MaoDevices />
+            <Layout role="mao">
+              <MaoDevices />
+            </Layout>
           </ProtectedRoute>
         } />
         <Route path="/mao/history" element={
           <ProtectedRoute allowedRoles={['mao']}>
-            <MaoHistory />
+            <Layout role="mao">
+              <MaoHistory />
+            </Layout>
           </ProtectedRoute>
         } />
         <Route path="/mao/register-farmer" element={
           <ProtectedRoute allowedRoles={['mao']}>
-            <MaoRegisterFarmer />
+            <Layout role="mao">
+              <MaoRegisterFarmer />
+            </Layout>
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/login" replace />} />

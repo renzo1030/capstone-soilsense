@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import Sidebar from '../components/Sidebar';
 import ConfirmModal from '../components/ConfirmModal';
 import { UserPlus, MapPin, Phone, User, Hash, Lock, Trash2, RefreshCw, Cpu, Ruler, Eye, X, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { API_BASE_URL } from '../config';
@@ -203,7 +202,6 @@ const MaoRegisterFarmer = () => {
                 onCancel={() => setModal({ open: false, id: null, name: '' })}
                 loading={deleteLoading}
             />
-            <Sidebar role="mao" />
             <main className="content">
                 <header className="dashboard-header">
                     <div>

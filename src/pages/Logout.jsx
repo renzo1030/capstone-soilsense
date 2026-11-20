@@ -4,6 +4,8 @@ const Logout = () => {
     useEffect(() => {
         sessionStorage.removeItem('access_token');
         sessionStorage.removeItem('user_role');
+        sessionStorage.removeItem('username');
+        sessionStorage.removeItem('must_change_password');
     }, []);
     return (
         <div className="login-wrapper">

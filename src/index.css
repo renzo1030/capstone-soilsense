@@ -245,6 +245,151 @@ body {
     margin-right: auto;
     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* ── Global Authenticated Shell, Header & Sticky-Bottom Footer ── */
+.app-layout {
+    min-height: 100vh;
+}
+.app-shell {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.app-shell > .content {
+    margin-left: 0;
+    flex: 1;
+    width: 100%;
+    padding: 28px 40px 36px 40px;
+}
+.app-header {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1.5px solid var(--card-border);
+    padding: 14px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+}
+.app-header-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    min-width: 0;
+}
+.app-header-section {
+    color: var(--text-light);
+    font-weight: 500;
+}
+.app-header-sep {
+    color: var(--text-muted);
+}
+.app-header-title {
+    color: var(--forest-900);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.app-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+.app-header-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-light);
+    background: var(--surface-subtle);
+    border: 1px solid var(--card-border);
+    padding: 5px 11px;
+    border-radius: 999px;
+}
+.app-header-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px 5px 12px;
+    background: var(--surface-solid);
+    border: 1px solid var(--card-border);
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+}
+.app-header-user-icon {
+    color: var(--primary);
+}
+.app-header-username {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    letter-spacing: 0.01em;
+}
+.app-role-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 9px;
+    border-radius: 999px;
+}
+.app-role-mao {
+    background: var(--forest-800);
+    color: #ffffff;
+}
+.app-role-farmer {
+    background: var(--primary-bg);
+    color: var(--forest-800);
+    border: 1px solid var(--success-border);
+}
+.app-footer {
+    margin-top: auto;
+    background: var(--surface-solid);
+    border-top: 1.5px solid var(--card-border);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    font-size: 0.83rem;
+    color: var(--text-light);
+}
+.app-footer-brand {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.app-footer-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--primary);
+    font-weight: 700;
+}
+.app-footer-logo strong span {
+    color: var(--forest-900);
+}
+.app-footer-divider {
+    color: var(--text-muted);
+}
+.app-footer-subtitle {
+    color: var(--text-light);
+    font-weight: 500;
+}
+.app-footer-copy {
+    color: var(--text-muted);
+    font-weight: 500;
+}
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
@@ -1152,6 +1297,34 @@ body {
     .content {
         margin-left: 0;
         padding: 85px 16px 24px 16px; 
+    }
+    .app-shell {
+        margin-left: 0;
+        padding-top: 70px;
+    }
+    .app-shell > .content {
+        padding: 20px 16px 24px 16px;
+    }
+    .app-header {
+        position: static;
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .app-header-location {
+        display: none;
+    }
+    .app-footer {
+        padding: 16px;
+        flex-direction: column;
+        text-align: center;
+        justify-content: center;
+    }
+    .app-footer-brand {
+        justify-content: center;
+    }
+    .app-footer-divider {
+        display: none;
     }
     .dashboard-header {
         flex-direction: column;

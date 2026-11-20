@@ -28,6 +28,7 @@ const Login = () => {
             if (response.ok) {
                 sessionStorage.setItem('access_token', data.token);
                 sessionStorage.setItem('user_role', data.user.role);
+                sessionStorage.setItem('username', data.user.username || controlId.trim().toUpperCase());
                 sessionStorage.setItem('must_change_password', String(data.must_change_password));
 
                 if (data.must_change_password) {

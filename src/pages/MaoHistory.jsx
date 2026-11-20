@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 import { User } from 'lucide-react';
 import { API_BASE_URL, MUNICIPALITY, THRESHOLDS } from '../config';
 const MaoHistory = () => {
@@ -89,7 +88,6 @@ const MaoHistory = () => {
     };
     return (
         <>
-            <Sidebar role="mao" />
             <main className="content">
                 <header className="dashboard-header">
                     <div>

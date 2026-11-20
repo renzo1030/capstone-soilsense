@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 import { API_BASE_URL, THRESHOLDS } from '../config';
 const FarmerHistory = () => {
     const [logs, setLogs] = useState([]);
@@ -85,7 +84,6 @@ const FarmerHistory = () => {
     };
     return (
         <>
-            <Sidebar role="farmer" />
             <main className="content">
                 <header className="dashboard-header">
                     <div>

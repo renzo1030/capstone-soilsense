@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import Sidebar from '../components/Sidebar';
 import ConfirmModal from '../components/ConfirmModal';
 import { Tractor, MapPin, User, PlusCircle, Trash2, Cpu, Link2Off, Link2, X, Pencil } from 'lucide-react';
 import { API_BASE_URL } from '../config';
@@ -549,7 +548,6 @@ const MaoDevices = () => {
                 </div>
             )}
 
-            <Sidebar role="mao" />
             <main className="content">
                 <header className="dashboard-header">
                     <div>
