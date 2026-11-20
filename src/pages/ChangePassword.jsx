@@ -23,7 +23,7 @@ const ChangePassword = () => {
         { label: 'One uppercase letter (A-Z)', met: /[A-Z]/.test(formData.new_password) },
         { label: 'One lowercase letter (a-z)', met: /[a-z]/.test(formData.new_password) },
         { label: 'One digit (0-9)', met: /\d/.test(formData.new_password) },
-        { label: 'One special symbol (@$!%*?&# etc.)', met: /[@$!%*?&#^()_\-+=\[\]{}|:;,<.>]/.test(formData.new_password) }
+        { label: 'One special symbol (@$!%*?&# etc.)', met: /[@$!%*?&#^()_\-+=[{\]}|:;,<.>]/.test(formData.new_password) }
     ];
 
     const allCriteriaMet = criteria.every(c => c.met);

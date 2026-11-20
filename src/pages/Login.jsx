@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sprout, Hash, Lock, Eye, EyeOff, AlertTriangle, ShieldAlert, HelpCircle, MapPin, X } from 'lucide-react';
 import { API_BASE_URL, MUNICIPALITY } from '../config';
 const Login = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isIdleTimeout = searchParams.get('reason') === 'idle_timeout';
     const [controlId, setControlId] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -60,6 +62,17 @@ const Login = () => {
                 </div>
                 <p className="subtitle">Precision Agriculture for Rice Farmers in Unisan, Quezon</p>
                 <form id="loginForm" onSubmit={handleSubmit}>
+                    {isIdleTimeout && !error && (
+                        <div
+                            className="p-3.5 mb-4 rounded-xl text-xs flex items-start gap-2.5 text-left border bg-amber-50 border-amber-300 text-amber-900"
+                            role="status"
+                        >
+                            <ShieldAlert size={18} className="text-amber-700 shrink-0 mt-0.5" />
+                            <span className="font-medium leading-relaxed">
+                                Your session expired after 15 minutes of inactivity. Please sign in again.
+                            </span>
+                        </div>
+                    )}
                     {error && (
                         <div 
                             className={`p-3.5 mb-4 rounded-xl text-xs flex items-start gap-2.5 text-left border ${

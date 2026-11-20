@@ -89,6 +89,22 @@ def classify_ph_level(ph):
         return "Highly Alkaline"
 
 
+def build_reading_action_plan(base_description, ph, moisture):
+    """
+    Appends reading-specific moisture advisories without mutating shared Fertilizer catalog rows.
+    """
+    plan = base_description or 'Monitor your field closely.'
+    try:
+        m = float(moisture)
+        if m <= 10.0 and 'Irrigate immediately' not in plan:
+            plan = f"Soil moisture is dangerously low ({m}%). Irrigate immediately before applying fertilizer! {plan}"
+        elif m >= 90.0 and 'waterlogged' not in plan:
+            plan = f"{plan} WARNING: Field is completely waterlogged. Ensure proper drainage immediately to prevent root rot."
+    except (ValueError, TypeError):
+        pass
+    return plan
+
+
 def predict_soil_condition(nitrogen, phosphorus, potassium, ph, moisture):
     """
     Predicts soil condition, action plan, and recommended fertilizer details using the ML model.
@@ -96,6 +112,22 @@ def predict_soil_condition(nitrogen, phosphorus, potassium, ph, moisture):
         tuple: (condition, action_plan, fertilizer_name, nutrient_type, recommended_amount_kg)
     """
     ph_label = classify_ph_level(ph)
+
+    # Optimal-range pre-check: the RF classifier only predicts fertilizer classes for deficiencies
+    if (
+        float(nitrogen) >= 20.0
+        and float(phosphorus) >= 20.0
+        and float(potassium) >= 30.0
+        and 5.5 <= float(ph) <= 7.0
+        and 40.0 <= float(moisture) <= 80.0
+    ):
+        return (
+            f"Optimal Soil Condition | pH: {ph_label}",
+            "Soil nutrient, pH, and moisture levels are within optimal ranges for rice cultivation. No fertilizer application needed—continue routine monitoring.",
+            "None Required (Maintenance Only)",
+            "Balanced",
+            0.0,
+        )
 
     try:
         model = load_model()

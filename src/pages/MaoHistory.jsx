@@ -172,7 +172,7 @@ const MaoHistory = () => {
                                         <td data-label="pH" className={log.ph < THRESHOLDS.ph.low || log.ph > THRESHOLDS.ph.high ? "text-danger fw-600" : "text-success fw-600"}>{log.ph}</td>
                                         <td data-label="Moisture" className={log.moisture < THRESHOLDS.moisture.low ? "text-warning fw-600" : "text-success fw-600"}>{log.moisture}%</td>
                                         <td data-label="ML Condition">
-                                            <span className={`badge ${log.condition === 'Optimal' ? 'badge-optimal' : 'badge-warning-alt'}`}>
+                                            <span className={`badge ${log.condition?.startsWith('Optimal') ? 'badge-optimal' : 'badge-warning-alt'}`}>
                                                 {log.condition}
                                             </span>
                                         </td>

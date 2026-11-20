@@ -6,7 +6,7 @@
  *    - Moisture Signal: Analog on GPIO 35 (ADC1)
  *    - Moisture Power:  GPIO 25 (Pulsed to prevent corrosion)
  *    - pH Probe:        Analog on GPIO 34 (ADC1, via 1/2 voltage divider)
- *    - RS-485 NPK:      UART2 (RX=GPIO16, TX=GPIO17) @ 9600 Baud
+ *    - RS-485 NPK:      UART2 (RX=GPIO16, TX=GPIO17) @ 4800 Baud
  *    - RS-485 Direction:GPIO 4 (Tied to DE & RE)
  * ========================================================================
  */
@@ -78,9 +78,9 @@ void setup() {
   pinMode(MOISTURE_POWER_PIN, OUTPUT);
   digitalWrite(MOISTURE_POWER_PIN, LOW); // Keep off by default
 
-  // Industrial NPK sensors default to 9600 baud
+  // Industrial NPK probe configured at 4800 baud
   NPKSerial.begin(4800, SERIAL_8N1, NPK_RX_PIN, NPK_TX_PIN);
-  Serial.println("[OK] NPK RS-485 UART initialized (9600 baud)");
+  Serial.println("[OK] NPK RS-485 UART initialized (4800 baud)");
 
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);

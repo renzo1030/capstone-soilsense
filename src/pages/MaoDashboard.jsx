@@ -56,7 +56,21 @@ const MaoDashboard = () => {
             </>
         );
     }
-    if (!data) return null;
+    if (!data) {
+        return (
+            <main className="content">
+                <div style={{ textAlign: 'center', padding: '72px 24px', background: 'var(--surface-solid)', borderRadius: 'var(--card-radius)', border: '1.5px solid var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <h2 style={{ color: 'var(--text-dark)', marginBottom: '10px', fontSize: '1.5rem' }}>Unable to Load Municipal Dashboard</h2>
+                    <p style={{ color: 'var(--text-light)', maxWidth: '460px', margin: '0 auto 24px', fontSize: '0.98rem' }}>
+                        The server may still be waking up or experienced a temporary connection drop.
+                    </p>
+                    <button type="button" className="btn-header" onClick={() => window.location.reload()}>
+                        Retry Connection
+                    </button>
+                </div>
+            </main>
+        );
+    }
     return (
         <>
             <main className="content">
@@ -111,7 +125,7 @@ const MaoDashboard = () => {
                                         <td className={status.ph < THRESHOLDS.ph.low || status.ph > THRESHOLDS.ph.high ? "text-danger fw-600" : "text-success fw-600"}>{status.ph}</td>
                                         <td className={status.moisture < THRESHOLDS.moisture.low ? "text-warning fw-600" : "text-success fw-600"}>{status.moisture}%</td>
                                         <td>
-                                            <span className={`badge ${status.condition === 'Optimal' ? 'badge-optimal' : 'badge-warning-alt'}`}>
+                                            <span className={`badge ${status.condition?.startsWith('Optimal') ? 'badge-optimal' : 'badge-warning-alt'}`}>
                                                 {status.condition}
                                             </span>
                                         </td>

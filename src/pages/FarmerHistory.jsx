@@ -133,7 +133,7 @@ const FarmerHistory = () => {
                                         <td data-label="Soil pH" className={log.ph < THRESHOLDS.ph.low ? "text-danger fw-600" : "text-success fw-600"}>{log.ph}</td>
                                         <td data-label="Moisture" className={log.moisture < THRESHOLDS.moisture.low ? "text-warning fw-600" : "text-success fw-600"}>{log.moisture}%</td>
                                         <td data-label="ML Condition">
-                                            <span className={log.condition === 'Optimal' ? "badge badge-optimal" : "badge badge-warning-alt"}>
+                                            <span className={log.condition?.startsWith('Optimal') ? "badge badge-optimal" : "badge badge-warning-alt"}>
                                                 {log.condition}
                                             </span>
                                         </td>

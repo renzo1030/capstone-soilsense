@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Droplets, Beaker, Sprout, Wind, Activity } from 'lucide-react';
+import { Droplets, Beaker, Sprout, Activity } from 'lucide-react';
 import { API_BASE_URL, THRESHOLDS } from '../config';
 
 const FarmerDashboard = () => {
@@ -99,6 +99,23 @@ const FarmerDashboard = () => {
                     </div>
                 </main>
             </>
+        );
+    }
+
+    if (!data) {
+        return (
+            <main className="content">
+                <div style={{ textAlign: 'center', padding: '72px 24px', background: 'var(--surface-solid)', borderRadius: 'var(--card-radius)', border: '1.5px solid var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <Activity size={52} style={{ color: 'var(--text-light)', margin: '0 auto 16px', opacity: 0.6 }} />
+                    <h2 style={{ color: 'var(--text-dark)', marginBottom: '10px', fontSize: '1.5rem' }}>Unable to Load Dashboard Data</h2>
+                    <p style={{ color: 'var(--text-light)', maxWidth: '460px', margin: '0 auto 24px', fontSize: '0.98rem' }}>
+                        The server may still be waking up or your farm profile is not yet configured. Please try again in a moment.
+                    </p>
+                    <button type="button" className="btn-header" onClick={() => window.location.reload()}>
+                        Retry Connection
+                    </button>
+                </div>
+            </main>
         );
     }
 
@@ -207,7 +224,7 @@ const FarmerDashboard = () => {
                         const parts = conditionStr.split(' | pH: ');
                         const soilCondition = parts[0];
                         const phLevel = parts[1] || null;
-                        const isOptimal = soilCondition === 'Optimal';
+                        const isOptimal = soilCondition.startsWith('Optimal');
                         return (
                             <div 
                                 style={{

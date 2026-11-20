@@ -13,7 +13,7 @@ from django.contrib.auth.hashers import check_password as django_check_password
 
 from .models import Account, Role, Farmer, MaoStaff, Farm, IoTDevice, SoilReading, SoilHealthStatus, Recommendation, Fertilizer
 from .serializers import AccountSerializer, SoilReadingSerializer
-from .ml_service import predict_soil_condition
+from .ml_service import predict_soil_condition, build_reading_action_plan
 from .permissions import IsMaoAdmin, IsFarmer
 from .throttles import LoginRateThrottle
 from django.db.models import Prefetch
@@ -238,9 +238,6 @@ def iot_data_ingest(request):
         nutrient_type=nutrient,
         defaults={'description': action_plan}
     )
-    if fert.description != action_plan:
-        fert.description = action_plan
-        fert.save()
 
     Recommendation.objects.create(
         reading=reading,
@@ -323,7 +320,11 @@ def farmer_dashboard_data(request):
                     'fertilizer_name': rec.fertilizer.fertilizer_name if rec else 'N/A',
                     'nutrient_type': rec.fertilizer.nutrient_type if rec else 'N/A',
                     'recommended_amount_kg': rec.recommended_amount_kg if rec else None,
-                    'action_plan': rec.fertilizer.description if rec else 'Monitor your field closely.',
+                    'action_plan': build_reading_action_plan(
+                        rec.fertilizer.description,
+                        latest_reading.ph_level,
+                        latest_reading.moisture,
+                    ) if rec else 'Monitor your field closely.',
                 }
 
         return Response({
@@ -674,7 +675,7 @@ def mao_dashboard_data(request):
     for farm in farms:
         latest = farm.latest_reading_list[0] if farm.latest_reading_list else None
         if latest:
-            if latest.status and latest.status.status_name != 'Optimal':
+            if latest.status and not latest.status.status_name.startswith('Optimal'):
                 critical_fields_count += 1
                 
             rec = latest.recommendations.first()
