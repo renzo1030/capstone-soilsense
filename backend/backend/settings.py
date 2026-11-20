@@ -98,8 +98,9 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'core.Account'
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
+    'https://capstone-soilsense.vercel.app',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
 ]
@@ -127,3 +128,5 @@ SESSION_COOKIE_AGE = 1800                # 30-minute server-side session ceiling
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = True
 SESSION_SAVE_EVERY_REQUEST = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'

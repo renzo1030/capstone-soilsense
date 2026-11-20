@@ -196,11 +196,24 @@ def iot_data_ingest(request):
 
     farm = device.farm
 
-    nitrogen = float(request.data.get('nitrogen', 0))
-    phosphorus = float(request.data.get('phosphorus', 0))
-    potassium = float(request.data.get('potassium', 0))
-    ph = float(request.data.get('ph', 0))
-    moisture = float(request.data.get('moisture', 0))
+    try:
+        nitrogen = float(request.data.get('nitrogen', 0))
+        phosphorus = float(request.data.get('phosphorus', 0))
+        potassium = float(request.data.get('potassium', 0))
+        ph = float(request.data.get('ph', 0))
+        moisture = float(request.data.get('moisture', 0))
+    except (ValueError, TypeError):
+        return Response(
+            {'error': 'Invalid sensor payload. All telemetry fields must be numeric.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if not (0 <= nitrogen <= 2000 and 0 <= phosphorus <= 2000 and 0 <= potassium <= 2000):
+        return Response({'error': 'NPK values out of valid range (0–2000 mg/kg).'}, status=status.HTTP_400_BAD_REQUEST)
+    if not (0.0 <= ph <= 14.0):
+        return Response({'error': 'pH level out of valid range (0.0–14.0).'}, status=status.HTTP_400_BAD_REQUEST)
+    if not (0.0 <= moisture <= 100.0):
+        return Response({'error': 'Moisture out of valid range (0.0–100.0%).'}, status=status.HTTP_400_BAD_REQUEST)
 
     condition, action_plan, fert_name, nutrient, amount = predict_soil_condition(
         nitrogen, phosphorus, potassium, ph, moisture
@@ -335,18 +348,24 @@ def register_farmer(request):
     """
     try:
         data = request.data
-        control_id = data.get('control_id', '').strip().upper()
-        firstname = data.get('firstname', '').strip()
-        lastname = data.get('lastname', '').strip()
-        contact_number = data.get('contact_number', '').strip()
+        control_id = (data.get('control_id') or '').strip().upper()
+        firstname = (data.get('firstname') or '').strip()
+        lastname = (data.get('lastname') or '').strip()
+        contact_number = (data.get('contact_number') or '').strip()
+        barangay = (data.get('barangay') or '').strip()
+        email = (data.get('email') or '').strip() or None
         default_password = data.get('password') or 'Farmer123'
         
         if not control_id:
             return Response({'error': 'Control ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
         if not firstname or not lastname:
             return Response({'error': 'First name and last name are required.'}, status=status.HTTP_400_BAD_REQUEST)
-        if not contact_number or not contact_number.isdigit() or len(contact_number) < 10:
-            return Response({'error': 'Invalid contact number format.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not barangay:
+            return Response({'error': 'Barangay is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(control_id) > 50 or len(firstname) > 100 or len(lastname) > 100 or len(barangay) > 100:
+            return Response({'error': 'One or more fields exceed maximum allowed length.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not contact_number or not contact_number.isdigit() or not (10 <= len(contact_number) <= 15):
+            return Response({'error': 'Invalid contact number format (10–15 digits required).'}, status=status.HTTP_400_BAD_REQUEST)
         
         # ── Duplicate Prevention Check ────────────────────────────────
         # Query candidates by case-insensitive name match, then verify decrypted contact_number
@@ -379,8 +398,8 @@ def register_farmer(request):
                 firstname=firstname,
                 lastname=lastname,
                 contact_number=contact_number,
-                email=data.get('email', '').strip() or None,
-                barangay=data.get('barangay', '').strip()
+                email=email,
+                barangay=barangay
             )
             
         return Response({
@@ -388,8 +407,8 @@ def register_farmer(request):
             'farmer_id': farmer_profile.farmer_id
         }, status=status.HTTP_201_CREATED)
 
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        return Response({'error': 'Invalid farmer registration data. Please check your inputs.'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsMaoAdmin])
@@ -400,16 +419,29 @@ def register_farm(request):
     try:
         data = request.data
         farmer_id = data.get('farmer_id')
+        farm_location = (data.get('farm_location') or '').strip()
+
+        if not farmer_id or not str(farmer_id).isdigit():
+            return Response({'error': 'Valid farmer_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not farm_location or len(farm_location) > 255:
+            return Response({'error': 'Farm location is required (max 255 characters).'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            total_area_sqm = float(data.get('farm_area_sqm', 0))
+        except (ValueError, TypeError):
+            return Response({'error': 'Invalid farm area value.'}, status=status.HTTP_400_BAD_REQUEST)
+        if total_area_sqm <= 0:
+            return Response({'error': 'Farm area must be greater than zero.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            farmer = Farmer.objects.get(farmer_id=farmer_id)
+            farmer = Farmer.objects.get(farmer_id=int(farmer_id))
         except Farmer.DoesNotExist:
             return Response({'error': 'Farmer not found.'}, status=status.HTTP_404_NOT_FOUND)
             
         farm = Farm.objects.create(
             farmer=farmer,
-            location=data.get('farm_location'),
-            total_area_sqm=float(data.get('farm_area_sqm', 0))
+            location=farm_location,
+            total_area_sqm=total_area_sqm
         )
         
         return Response({
@@ -417,8 +449,8 @@ def register_farm(request):
             'farm_id': farm.farm_id
         }, status=status.HTTP_201_CREATED)
 
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        return Response({'error': 'Invalid farm registration data. Please check your inputs.'}, status=status.HTTP_400_BAD_REQUEST)
 
 # =============================================================================
 #  MAO ENDPOINTS — IoT Device Management (Hardware Registry)
@@ -432,20 +464,24 @@ def register_device(request):
     """
     try:
         data = request.data
-        device_uid = data.get('device_uid', '').strip()
-        device_name = data.get('device_name', 'SoilSense Probe').strip()
+        device_uid = (data.get('device_uid') or '').strip()
+        device_name = (data.get('device_name') or 'SoilSense Probe').strip() or 'SoilSense Probe'
         farm_id = data.get('farm_id')
 
         if not device_uid:
             return Response({'error': 'Device UID is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(device_uid) > 64 or len(device_name) > 100:
+            return Response({'error': 'Device UID (max 64) or name (max 100) exceeds maximum length.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if IoTDevice.objects.filter(device_uid=device_uid).exists():
             return Response({'error': 'A device with this UID is already registered.'}, status=status.HTTP_400_BAD_REQUEST)
 
         farm = None
         if farm_id:
+            if not str(farm_id).isdigit():
+                return Response({'error': 'Invalid farm_id.'}, status=status.HTTP_400_BAD_REQUEST)
             try:
-                farm = Farm.objects.get(farm_id=farm_id)
+                farm = Farm.objects.get(farm_id=int(farm_id))
             except Farm.DoesNotExist:
                 return Response({'error': 'Farm not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -462,8 +498,8 @@ def register_device(request):
             'device_uid': device.device_uid
         }, status=status.HTTP_201_CREATED)
 
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        return Response({'error': 'Invalid device registration data. Please check your inputs.'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsMaoAdmin])
@@ -673,7 +709,9 @@ def mao_logs_data(request):
     )
     
     if farmer_id:
-        queryset = queryset.filter(farm__farmer__farmer_id=farmer_id)
+        if not str(farmer_id).isdigit():
+            return Response({'error': 'Invalid farmer_id parameter.'}, status=status.HTTP_400_BAD_REQUEST)
+        queryset = queryset.filter(farm__farmer__farmer_id=int(farmer_id))
         
     readings = queryset.order_by('-recorded_at')[:500]
     
