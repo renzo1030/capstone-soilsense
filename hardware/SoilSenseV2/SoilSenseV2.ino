@@ -25,8 +25,12 @@ const char* WIFI_PASSWORD = "1223334444";
 const char* SERVER_URL    = "https://soilsense-api-t8ym.onrender.com/api/iot/upload/";
 const char* DEVICE_UID    = "ESP32-SOILSENSE-01"; // Must match active assigned device in MAO Hardware Registry
 
-// Reading interval (10 seconds)
-const unsigned long SEND_INTERVAL_MS = 10000;
+// Set DEMO_MODE to true for fast 15-second (3-sample) averaged uploads during live defense,
+// or false for 60-second (12-sample) averaged uploads during normal operation:
+#define DEMO_MODE           false
+
+const unsigned long SAMPLE_INTERVAL_MS = 5000;               // Sample all sensors every 5 seconds
+const int           SAMPLES_PER_UPLOAD = DEMO_MODE ? 3 : 12; // 3 samples (15s) in demo, 12 samples (60s) in field
 
 // ========================= PIN DEFINITIONS ============================
 
@@ -46,7 +50,16 @@ const byte npkCombinedQuery[] = {0x01, 0x03, 0x00, 0x1E, 0x00, 0x03, 0x65, 0xCD}
 // ========================= GLOBAL VARIABLES ===========================
 
 HardwareSerial NPKSerial(2);
-unsigned long lastSendTime = 0;
+unsigned long lastSampleTime = 0;
+
+// Multi-sample averaging accumulators
+int           sampleCount      = 0;
+int           validNpkSamples  = 0;
+unsigned long sumNitrogen      = 0;
+unsigned long sumPhosphorus    = 0;
+unsigned long sumPotassium     = 0;
+float         sumPH            = 0.0f;
+float         sumMoisture      = 0.0f;
 
 // ========================= SETUP ======================================
 
@@ -74,6 +87,9 @@ void setup() {
   Serial.println("[OK] Analog pins configured (12-bit, 0-3.3V)");
 
   connectWiFi();
+  Serial.printf("[OK] Mode: %s | Sampling every %lu ms | Upload every %d samples\n",
+                DEMO_MODE ? "DEMO_MODE (15s)" : "FIELD_MODE (60s)",
+                SAMPLE_INTERVAL_MS, SAMPLES_PER_UPLOAD);
   Serial.println("[OK] Setup Complete! Reading sensors...\n");
 }
 
@@ -87,11 +103,11 @@ void loop() {
 
   unsigned long now = millis();
 
-  if (now - lastSendTime >= SEND_INTERVAL_MS) {
-    lastSendTime = now;
+  if (now - lastSampleTime >= SAMPLE_INTERVAL_MS) {
+    lastSampleTime = now;
 
     Serial.println("──────────────────────────────────────");
-    Serial.println("  📡 Reading all sensors...");
+    Serial.printf("  📡 Sample %d/%d...\n", sampleCount + 1, SAMPLES_PER_UPLOAD);
     Serial.println("──────────────────────────────────────");
 
     float moisture = readMoisture();
@@ -99,29 +115,54 @@ void loop() {
 
     uint16_t nitrogen = 0, phosphorus = 0, potassium = 0;
     bool npkSuccess = readCombinedNPK(nitrogen, phosphorus, potassium);
-    
+
     if (npkSuccess) {
-        Serial.printf("  🟢 Nitrogen:    %u mg/kg\n", nitrogen);
-        Serial.printf("  🔵 Phosphorus:  %u mg/kg\n", phosphorus);
-        Serial.printf("  🟠 Potassium:   %u mg/kg\n", potassium);
+      Serial.printf("  🟢 Nitrogen:    %u mg/kg\n", nitrogen);
+      Serial.printf("  🔵 Phosphorus:  %u mg/kg\n", phosphorus);
+      Serial.printf("  🟠 Potassium:   %u mg/kg\n", potassium);
+      sumNitrogen   += nitrogen;
+      sumPhosphorus += phosphorus;
+      sumPotassium  += potassium;
+      validNpkSamples++;
     } else {
-        Serial.println("  [NPK Error] Failed to read sensor or CRC mismatch.");
+      Serial.println("  [NPK Error] Failed to read sensor or CRC mismatch (excluded from average).");
     }
 
     float ph = readPH();
     Serial.printf("  ⚗️  pH Level:    %.2f\n\n", ph);
 
-    // Build the JSON payload and upload to live Render backend
-    char jsonPayload[180];
-    snprintf(jsonPayload, sizeof(jsonPayload),
-             "{\"nitrogen\":%d,\"phosphorus\":%d,\"potassium\":%d,\"ph\":%.2f,\"moisture\":%.1f}",
-             npkSuccess ? nitrogen : 0, 
-             npkSuccess ? phosphorus : 0, 
-             npkSuccess ? potassium : 0, 
-             ph, moisture);
+    sumMoisture += moisture;
+    sumPH       += ph;
+    sampleCount++;
 
-    Serial.printf("  [Payload] %s\n", jsonPayload);
-    uploadToCloud(jsonPayload);
+    // Trigger cloud upload once the configured sample window is complete
+    if (sampleCount >= SAMPLES_PER_UPLOAD) {
+      float avgMoisture = sumMoisture / sampleCount;
+      float avgPH       = sumPH / sampleCount;
+      int   avgN        = (validNpkSamples > 0) ? (int)((sumNitrogen + (validNpkSamples / 2)) / validNpkSamples) : 0;
+      int   avgP        = (validNpkSamples > 0) ? (int)((sumPhosphorus + (validNpkSamples / 2)) / validNpkSamples) : 0;
+      int   avgK        = (validNpkSamples > 0) ? (int)((sumPotassium + (validNpkSamples / 2)) / validNpkSamples) : 0;
+
+      char jsonPayload[180];
+      snprintf(jsonPayload, sizeof(jsonPayload),
+               "{\"nitrogen\":%d,\"phosphorus\":%d,\"potassium\":%d,\"ph\":%.2f,\"moisture\":%.1f}",
+               avgN, avgP, avgK, avgPH, avgMoisture);
+
+      Serial.printf("  [Window Average] %d total samples | %d/%d valid NPK reads\n",
+                    sampleCount, validNpkSamples, sampleCount);
+      Serial.printf("  [Payload] %s\n", jsonPayload);
+      uploadToCloud(jsonPayload);
+
+      // Reset accumulators and anchor next 5s cycle after upload finishes
+      sampleCount     = 0;
+      validNpkSamples = 0;
+      sumNitrogen     = 0;
+      sumPhosphorus   = 0;
+      sumPotassium    = 0;
+      sumPH           = 0.0f;
+      sumMoisture     = 0.0f;
+      lastSampleTime  = millis();
+    }
   }
 
   delay(100);
