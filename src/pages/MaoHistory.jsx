@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
 import { API_BASE_URL, MUNICIPALITY, THRESHOLDS } from '../config';
+import { downloadCsv, splitDateTime, formatDecimal } from '../utils/exportCsv';
 const MaoHistory = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -61,30 +62,38 @@ const MaoHistory = () => {
     };
     const handleDownloadExcel = () => {
         if (!logs.length) return;
-        const headers = ['Date & Time', 'Farmer Name', 'Location', 'N (mg/kg)', 'P (mg/kg)', 'K (mg/kg)', 'pH', 'Moisture (%)', 'ML Condition', 'Recommended Fertilizer', 'Amount (kg/ha)'];
-        const rows = logs.map(log => [
-            formatDate(log.timestamp),
-            log.farmer_name,
-            log.location,
-            log.nitrogen,
-            log.phosphorus,
-            log.potassium,
-            log.ph,
-            log.moisture,
-            log.condition,
-            log.fertilizer_name || 'N/A',
-            log.recommended_amount_kg != null ? log.recommended_amount_kg : 'N/A'
-        ]);
-        const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `SoilSense_MAO_Records_${new Date().toISOString().slice(0,10)}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        const headers = [
+            'Date',
+            'Time',
+            'Farmer Name',
+            'Location',
+            'N (mg/kg)',
+            'P (mg/kg)',
+            'K (mg/kg)',
+            'pH',
+            'Moisture (%)',
+            'ML Condition',
+            'Recommended Fertilizer',
+            'Amount (kg/ha)',
+        ];
+        const rows = logs.map((log) => {
+            const { date, time } = splitDateTime(log.timestamp);
+            return [
+                date,
+                time,
+                log.farmer_name || 'N/A',
+                log.location || 'N/A',
+                formatDecimal(log.nitrogen, 1),
+                formatDecimal(log.phosphorus, 1),
+                formatDecimal(log.potassium, 1),
+                formatDecimal(log.ph, 2),
+                formatDecimal(log.moisture, 1),
+                log.condition || 'Unknown',
+                log.fertilizer_name || 'N/A',
+                log.recommended_amount_kg != null ? formatDecimal(log.recommended_amount_kg, 1) : 'N/A',
+            ];
+        });
+        downloadCsv(`SoilSense_MAO_Records_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
     };
     return (
         <>
