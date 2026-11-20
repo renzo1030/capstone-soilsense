@@ -34,3 +34,8 @@ media/
 backend/db.sqlite3
 backend/local_core_data.json
 chapter4_ml_metrics_summary.txt
+.env.*
+!.env.example
+backend/.env
+backend/staticfiles/
+

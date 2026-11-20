@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import ConfirmModal from '../components/ConfirmModal';
-import { Tractor, MapPin, User, PlusCircle, Trash2, Cpu, Link2Off, Link2, X } from 'lucide-react';
+import { Tractor, MapPin, User, PlusCircle, Trash2, Cpu, Link2Off, Link2, X, Pencil } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import toast from 'react-hot-toast';
 
@@ -40,6 +40,15 @@ const MaoDevices = () => {
     const [reassignModal, setReassignModal] = useState({ open: false, device: null });
     const [reassignFarmId, setReassignFarmId] = useState('');
     const [reassignLoading, setReassignLoading] = useState(false);
+
+    // Edit Device Name Modal State
+    const [editModal, setEditModal] = useState({ open: false, device: null });
+    const [editName, setEditName] = useState('');
+    const [editLoading, setEditLoading] = useState(false);
+
+    // Delete Device Modal State
+    const [deleteModal, setDeleteModal] = useState({ open: false, device: null });
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     // ── Fetch Functions ──
 
@@ -290,6 +299,92 @@ const MaoDevices = () => {
         return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
+    // ── Edit Device Name ──
+
+    const openEditModal = (device) => {
+        setEditModal({ open: true, device });
+        setEditName(device.device_name || '');
+    };
+
+    const closeEditModal = () => {
+        if (editLoading) return;
+        setEditModal({ open: false, device: null });
+        setEditName('');
+    };
+
+    const handleEditSave = async (e) => {
+        e?.preventDefault();
+        const trimmed = editName.trim();
+        if (!trimmed) { toast.error('Device name cannot be empty.'); return; }
+        if (trimmed === editModal.device.device_name) { closeEditModal(); return; }
+
+        setEditLoading(true);
+        const token = sessionStorage.getItem('access_token');
+        try {
+            const res = await fetch(`${API_BASE_URL}/mao/devices/${editModal.device.device_id}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ device_name: trimmed })
+            });
+            if (res.status === 401) { window.location.href = '/logout'; return; }
+            let data = {};
+            try { data = await res.json(); } catch { /* non-JSON */ }
+
+            if (res.ok) {
+                const id = editModal.device.device_id;
+                setDevices(prev => prev.map(d =>
+                    d.device_id === id ? (data.device || { ...d, device_name: trimmed }) : d
+                ));
+                toast.success(data.message || 'Device renamed.');
+                setEditModal({ open: false, device: null });
+                setEditName('');
+            } else {
+                toast.error(data.error || 'Failed to rename device.');
+            }
+        } catch (err) {
+            console.error('Rename failed:', err);
+            toast.error('Connection error while renaming device.');
+        } finally {
+            setEditLoading(false);
+        }
+    };
+
+    // ── Delete Device ──
+
+    const openDeleteModal = (device) => setDeleteModal({ open: true, device });
+
+    const handleDelete = async () => {
+        const device = deleteModal.device;
+        if (!device) return;
+        setDeleteLoading(true);
+        const token = sessionStorage.getItem('access_token');
+        try {
+            const res = await fetch(`${API_BASE_URL}/mao/devices/${device.device_id}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 401) { window.location.href = '/logout'; return; }
+            let data = {};
+            try { data = await res.json(); } catch { /* non-JSON */ }
+
+            if (res.ok) {
+                setDevices(prev => prev.filter(d => d.device_id !== device.device_id));
+                setDeleteModal({ open: false, device: null });
+                toast.success(data.message || `Device ${device.device_uid} deleted.`);
+            } else {
+                toast.error(data.error || 'Failed to delete device.');
+            }
+        } catch (err) {
+            console.error('Delete failed:', err);
+            toast.error('Connection error while deleting device.');
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
+
     return (
         <>
             {/* Unassign Confirmation Modal */}
@@ -300,7 +395,77 @@ const MaoDevices = () => {
                 onConfirm={handleUnassign}
                 onCancel={() => setUnassignModal({ open: false, id: null, title: '' })}
                 loading={unassignLoading}
+                confirmLabel="Yes, Unassign"
+                loadingLabel="Unassigning..."
             />
+
+            {/* Delete Device Confirmation Modal */}
+            <ConfirmModal
+                isOpen={deleteModal.open}
+                title="Delete IoT Device"
+                message={`Permanently delete device "${deleteModal.device?.device_uid}"${deleteModal.device?.device_name ? ` (${deleteModal.device.device_name})` : ''}? This cannot be undone. Historical soil readings recorded by this device will be preserved and remain visible in the farm's history, but the ESP32 using this UID will be rejected until it is re-registered.`}
+                onConfirm={handleDelete}
+                onCancel={() => !deleteLoading && setDeleteModal({ open: false, device: null })}
+                loading={deleteLoading}
+                confirmLabel="Yes, Delete Device"
+                loadingLabel="Deleting..."
+            />
+
+            {/* Edit Device Name Modal */}
+            {editModal.open && (
+                <div className="modal-overlay">
+                    <form className="modal-container" style={{ maxWidth: '460px' }} onSubmit={handleEditSave}>
+                        <div className="modal-header-container">
+                            <div className="modal-icon-wrapper" style={{ background: 'var(--primary-bg)', color: 'var(--primary)' }}>
+                                <Pencil size={20} />
+                            </div>
+                            <h3 className="modal-title">Edit Device Name</h3>
+                            <button type="button" onClick={closeEditModal} className="btn-close" aria-label="Close modal">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div className="modal-body-text" style={{ textAlign: 'left', marginBottom: '20px' }}>
+                            <p style={{ marginBottom: '15px' }}>
+                                Device UID: <strong>{editModal.device?.device_uid}</strong>
+                                <br />
+                                <span className="sub-text">The UID is read-only because the ESP32 firmware authenticates with it.</span>
+                            </p>
+                            <div className="flex flex-col gap-1.5 mb-2">
+                                <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                                    Device Name
+                                </label>
+                                <div className="relative flex items-center">
+                                    <span className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center text-base">
+                                        <Cpu size={18} />
+                                    </span>
+                                    <input
+                                        type="text"
+                                        autoFocus
+                                        maxLength={100}
+                                        value={editName}
+                                        onChange={(e) => setEditName(e.target.value)}
+                                        placeholder="e.g., SoilSense Probe #1"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition duration-150"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn-cancel" onClick={closeEditModal} disabled={editLoading}>
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                className="btn-confirm primary"
+                                disabled={editLoading || !editName.trim()}
+                            >
+                                <Pencil size={16} />
+                                {editLoading ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
             {/* Reassign Modal */}
             {reassignModal.open && (
@@ -630,37 +795,45 @@ const MaoDevices = () => {
                             <tbody>
                                 {devices.map((device) => (
                                     <tr key={device.device_id}>
-                                        <td><strong>{device.device_uid}</strong></td>
-                                        <td>{device.device_name}</td>
-                                        <td>{device.farm_id ? `${device.farm_location}` : <span className="sub-text">Unassigned</span>}</td>
-                                        <td>
+                                        <td data-label="Device UID"><strong>{device.device_uid}</strong></td>
+                                        <td data-label="Device Name">{device.device_name}</td>
+                                        <td data-label="Assigned Farm">{device.farm_id ? `${device.farm_location}` : <span className="sub-text">Unassigned</span>}</td>
+                                        <td data-label="Farmer">
                                             {device.farm_id ? (
                                                 <>{device.farmer_name}<br/><span className="sub-text">ID: {device.control_id}</span></>
                                             ) : (
                                                 <span className="sub-text">—</span>
                                             )}
                                         </td>
-                                        <td>
+                                        <td data-label="Status">
                                             <span className={`badge ${device.is_active && device.farm_id ? 'badge-optimal' : 'badge-warning-alt'}`}>
                                                 {device.is_active ? (device.farm_id ? 'Active' : 'Idle') : 'Inactive'}
                                             </span>
                                         </td>
-                                        <td className="sub-text">{formatDate(device.last_sync)}</td>
-                                        <td style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                            {device.farm_id ? (
-                                                <>
-                                                    <button className="btn-view" onClick={() => openReassignModal(device)}>
-                                                        <Link2 size={14} style={{ marginRight: '4px' }}/> Reassign
+                                        <td data-label="Last Sync" className="sub-text">{formatDate(device.last_sync)}</td>
+                                        <td data-label="Actions" className="device-actions-cell">
+                                            <div className="device-actions">
+                                                {device.farm_id ? (
+                                                    <>
+                                                        <button className="btn-view" onClick={() => openReassignModal(device)} title="Move to another farm">
+                                                            <Link2 size={14} /> Reassign
+                                                        </button>
+                                                        <button className="btn-unassign" onClick={() => openUnassignModal(device)} title="Detach from farm">
+                                                            <Link2Off size={14} /> Unassign
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <button className="btn-view" onClick={() => openReassignModal(device)} title="Assign to a farm">
+                                                        <Link2 size={14} /> Assign
                                                     </button>
-                                                    <button className="btn-delete" onClick={() => openUnassignModal(device)}>
-                                                        <Link2Off size={14} style={{ marginRight: '4px' }}/> Unassign
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <button className="btn-header btn-sm" onClick={() => openReassignModal(device)}>
-                                                    <Link2 size={14} style={{ marginRight: '4px' }}/> Assign
+                                                )}
+                                                <button className="btn-edit" onClick={() => openEditModal(device)} title="Rename device" aria-label={`Edit ${device.device_uid}`}>
+                                                    <Pencil size={14} /> Edit
                                                 </button>
-                                            )}
+                                                <button className="btn-delete" onClick={() => openDeleteModal(device)} title="Delete device" aria-label={`Delete ${device.device_uid}`}>
+                                                    <Trash2 size={14} /> Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

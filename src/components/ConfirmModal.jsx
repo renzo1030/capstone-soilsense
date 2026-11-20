@@ -1,6 +1,9 @@
 import { AlertTriangle, X } from 'lucide-react';
 
-const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel, loading }) => {
+const ConfirmModal = ({
+    isOpen, title, message, onConfirm, onCancel, loading,
+    confirmLabel = 'Yes, Delete', loadingLabel = 'Deleting...'
+}) => {
     if (!isOpen) return null;
     return (
         <div className="modal-overlay">
@@ -25,7 +28,7 @@ const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel, loading }) 
                         className="btn-confirm danger"
                         style={{ opacity: loading ? 0.7 : 1 }}
                     >
-                        {loading ? 'Deleting...' : 'Yes, Delete'}
+                        {loading ? loadingLabel : confirmLabel}
                     </button>
                 </div>
             </div>

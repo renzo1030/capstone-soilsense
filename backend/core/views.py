@@ -491,6 +491,59 @@ def list_devices(request):
 
     return Response(data)
 
+def _serialize_device(device):
+    farm = device.farm
+    return {
+        'device_id': device.device_id,
+        'device_uid': device.device_uid,
+        'device_name': device.device_name,
+        'is_active': device.is_active,
+        'farm_id': farm.farm_id if farm else None,
+        'farm_location': farm.location if farm else 'Unassigned',
+        'farmer_name': f"{farm.farmer.firstname} {farm.farmer.lastname}" if farm else 'N/A',
+        'control_id': farm.farmer.account.username if farm else 'N/A',
+        'last_sync': device.last_sync,
+        'registered_date': device.registered_date,
+    }
+
+@api_view(['PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated, IsMaoAdmin])
+def device_detail(request, device_id):
+    """
+    PATCH  -> rename a device (device_name only; device_uid stays read-only
+              because the ESP32 firmware authenticates with it).
+    DELETE -> permanently remove a device. SoilReading.device uses SET_NULL,
+              so historical readings are preserved and simply detached.
+    """
+    try:
+        device = IoTDevice.objects.select_related('farm', 'farm__farmer', 'farm__farmer__account').get(device_id=device_id)
+    except IoTDevice.DoesNotExist:
+        return Response({'error': 'Device not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PATCH':
+        device_name = (request.data.get('device_name') or '').strip()
+        if not device_name:
+            return Response({'error': 'Device name cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(device_name) > 100:
+            return Response({'error': 'Device name must be 100 characters or fewer.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        device.device_name = device_name
+        device.save(update_fields=['device_name'])
+        return Response({
+            'message': f'Device renamed to "{device_name}".',
+            'device': _serialize_device(device),
+        }, status=status.HTTP_200_OK)
+
+    # DELETE
+    device_uid = device.device_uid
+    with transaction.atomic():
+        preserved = SoilReading.objects.filter(device=device).update(device=None)
+        device.delete()
+    return Response({
+        'message': f'Device {device_uid} deleted. {preserved} historical reading(s) preserved.',
+        'preserved_readings': preserved,
+    }, status=status.HTTP_200_OK)
+
 @api_view(['PATCH', 'POST', 'PUT'])
 @permission_classes([IsAuthenticated, IsMaoAdmin])
 def unassign_device(request, device_id):

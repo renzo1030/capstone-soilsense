@@ -940,6 +940,48 @@ body {
     background: rgba(16, 185, 129, 0.25);
 }
 
+/* ── Hardware Registry row actions ──
+   The <td> stays a real table-cell; the flex layout lives on the inner wrapper,
+   otherwise the cell drops out of table layout and shifts columns. */
+.device-actions-cell {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+.device-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+.btn-edit,
+.btn-unassign {
+    border-radius: 8px;
+    padding: 6px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+.btn-edit {
+    background: rgba(100, 116, 139, 0.10);
+    border: 1px solid rgba(100, 116, 139, 0.30);
+    color: #334155;
+}
+.btn-edit:hover {
+    background: rgba(100, 116, 139, 0.20);
+}
+.btn-unassign {
+    background: rgba(217, 119, 6, 0.10);
+    border: 1px solid rgba(217, 119, 6, 0.30);
+    color: var(--warning);
+}
+.btn-unassign:hover {
+    background: rgba(217, 119, 6, 0.20);
+}
+
 
 .status-badge-lg {
     margin-bottom: 30px;
