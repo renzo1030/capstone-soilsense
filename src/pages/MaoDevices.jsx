@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import ConfirmModal from '../components/ConfirmModal';
-import { Tractor, MapPin, User, PlusCircle, Trash2, Cpu, Link2Off, Link2 } from 'lucide-react';
+import { Tractor, MapPin, User, PlusCircle, Trash2, Cpu, Link2Off, Link2, X } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import toast from 'react-hot-toast';
 
@@ -232,11 +232,11 @@ const MaoDevices = () => {
 
     const openReassignModal = (device) => {
         setReassignModal({ open: true, device });
-        setReassignFarmId('');
+        setReassignFarmId(device.farm_id ? String(device.farm_id) : '');
     };
 
     const handleReassign = async () => {
-        if (!reassignFarmId) { toast.error('Select a farm.'); return; }
+        if (!reassignFarmId) { toast.error('Please select a farm.'); return; }
         setReassignLoading(true);
         const token = sessionStorage.getItem('access_token');
         try {
@@ -246,20 +246,39 @@ const MaoDevices = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ farm_id: reassignFarmId })
+                body: JSON.stringify({ farm_id: Number(reassignFarmId) })
             });
             if (res.status === 401) { window.location.href = '/logout'; return; }
+
+            let data = {};
+            try {
+                data = await res.json();
+            } catch {
+                // fallback if non-json
+            }
+
             if (res.ok) {
+                const selectedFarm = farmList.find(f => String(f.farm_id) === String(reassignFarmId));
+                setDevices(prev => prev.map(d => {
+                    if (d.device_id !== reassignModal.device.device_id) return d;
+                    if (data.device) return data.device;
+                    return {
+                        ...d,
+                        farm_id: Number(reassignFarmId),
+                        farm_location: selectedFarm ? selectedFarm.location : d.farm_location,
+                        farmer_name: selectedFarm ? selectedFarm.farmer_name : d.farmer_name,
+                        control_id: selectedFarm ? selectedFarm.control_id : d.control_id,
+                    };
+                }));
                 setReassignModal({ open: false, device: null });
-                toast.success('Device reassigned successfully.');
+                toast.success(data.message || 'Device assigned to farm successfully.');
                 fetchDevices();
             } else {
-                const data = await res.json();
-                toast.error(data.error || 'Failed to reassign device.');
+                toast.error(data.error || 'Failed to assign device.');
             }
         } catch (err) {
             console.error('Reassign failed:', err);
-            toast.error('Connection error.');
+            toast.error('Connection error while assigning device.');
         } finally {
             setReassignLoading(false);
         }
@@ -286,18 +305,28 @@ const MaoDevices = () => {
             {/* Reassign Modal */}
             {reassignModal.open && (
                 <div className="modal-overlay">
-                    <div className="modal-container" style={{ maxWidth: '450px' }}>
+                    <div className="modal-container" style={{ maxWidth: '460px' }}>
                         <div className="modal-header-container">
                             <div className="modal-icon-wrapper" style={{ background: 'var(--primary-bg)', color: 'var(--primary)' }}>
                                 <Link2 size={22} />
                             </div>
-                            <h3 className="modal-title">Reassign Device</h3>
+                            <h3 className="modal-title">
+                                {reassignModal.device?.farm_id ? 'Reassign Device' : 'Assign Device'}
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setReassignModal({ open: false, device: null })}
+                                className="btn-close"
+                                aria-label="Close modal"
+                            >
+                                <X size={18} />
+                            </button>
                         </div>
-                        <div className="modal-body-text" style={{ textAlign: 'left' }}>
+                        <div className="modal-body-text" style={{ textAlign: 'left', marginBottom: '20px' }}>
                             <p style={{ marginBottom: '15px' }}>
-                                Reassigning <strong>{reassignModal.device?.device_uid}</strong> to a new farm:
+                                Assigning <strong>{reassignModal.device?.device_uid}</strong> to a farm:
                             </p>
-                            <div className="flex flex-col gap-1.5 mb-4">
+                            <div className="flex flex-col gap-1.5 mb-2">
                                 <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                                     Select Farm
                                 </label>
@@ -331,10 +360,24 @@ const MaoDevices = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="modal-actions">
-                            <button className="btn-cancel" onClick={() => setReassignModal({ open: false, device: null })}>Cancel</button>
-                            <button className="btn-confirm" onClick={handleReassign} disabled={reassignLoading || !reassignFarmId}>
-                                {reassignLoading ? 'Assigning...' : 'Assign Device'}
+                        <div className="modal-footer">
+                            <button
+                                type="button"
+                                className="btn-cancel"
+                                onClick={() => setReassignModal({ open: false, device: null })}
+                                disabled={reassignLoading}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-confirm primary inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-sm transition duration-150 disabled:opacity-50"
+                                style={{ backgroundColor: '#059669', color: '#ffffff' }}
+                                onClick={handleReassign}
+                                disabled={reassignLoading || !reassignFarmId}
+                            >
+                                <Link2 size={16} />
+                                {reassignLoading ? 'Assigning...' : 'Confirm Assignment'}
                             </button>
                         </div>
                     </div>
@@ -605,9 +648,14 @@ const MaoDevices = () => {
                                         <td className="sub-text">{formatDate(device.last_sync)}</td>
                                         <td style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                             {device.farm_id ? (
-                                                <button className="btn-delete" onClick={() => openUnassignModal(device)}>
-                                                    <Link2Off size={14} style={{ marginRight: '4px' }}/> Unassign
-                                                </button>
+                                                <>
+                                                    <button className="btn-view" onClick={() => openReassignModal(device)}>
+                                                        <Link2 size={14} style={{ marginRight: '4px' }}/> Reassign
+                                                    </button>
+                                                    <button className="btn-delete" onClick={() => openUnassignModal(device)}>
+                                                        <Link2Off size={14} style={{ marginRight: '4px' }}/> Unassign
+                                                    </button>
+                                                </>
                                             ) : (
                                                 <button className="btn-header btn-sm" onClick={() => openReassignModal(device)}>
                                                     <Link2 size={14} style={{ marginRight: '4px' }}/> Assign

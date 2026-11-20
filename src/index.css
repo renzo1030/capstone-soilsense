@@ -1025,16 +1025,19 @@ body {
     color: var(--text-light);
     line-height: 1.6;
 }
-.modal-footer {
+.modal-footer,
+.modal-actions {
     display: flex;
     gap: 12px;
     justify-content: flex-end;
+    align-items: center;
+    margin-top: 8px;
 }
 .btn-cancel {
     padding: 10px 20px;
     border-radius: 8px;
     border: 1px solid #d1d5db;
-    background: transparent;
+    background: #ffffff;
     color: var(--text-dark);
     font-size: 0.95rem;
     font-weight: 500;
@@ -1048,22 +1051,35 @@ body {
     padding: 10px 20px;
     border-radius: 8px;
     border: none;
-    color: white;
+    background: var(--primary);
+    color: #ffffff;
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 1px 3px 0 rgba(6, 78, 59, 0.15);
     transition: var(--transition);
+}
+.btn-confirm:hover:not(:disabled) {
+    background: var(--primary-hover);
+}
+.btn-confirm:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 .btn-confirm.danger {
     background: var(--danger);
 }
-.btn-confirm.danger:hover {
+.btn-confirm.danger:hover:not(:disabled) {
     background: #dc2626;
 }
 .btn-confirm.primary {
     background: var(--primary);
 }
-.btn-confirm.primary:hover {
+.btn-confirm.primary:hover:not(:disabled) {
     background: var(--primary-hover);
 }
 

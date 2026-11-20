@@ -12,12 +12,18 @@
  */
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
 
 // ========================= USER CONFIGURATION =========================
 
 // Updated Wi-Fi credentials
 const char* WIFI_SSID     = "Enzo";
 const char* WIFI_PASSWORD = "1223334444";
+
+// Live Render Django API Endpoint & Registered Hardware UID
+const char* SERVER_URL    = "https://soilsense-api-t8ym.onrender.com/api/iot/upload/";
+const char* DEVICE_UID    = "ESP32-SOILSENSE-01"; // Must match active assigned device in MAO Hardware Registry
 
 // Reading interval (10 seconds)
 const unsigned long SEND_INTERVAL_MS = 10000;
@@ -105,7 +111,7 @@ void loop() {
     float ph = readPH();
     Serial.printf("  ⚗️  pH Level:    %.2f\n\n", ph);
 
-    // Build the JSON payload to verify it, but DO NOT upload it
+    // Build the JSON payload and upload to live Render backend
     char jsonPayload[180];
     snprintf(jsonPayload, sizeof(jsonPayload),
              "{\"nitrogen\":%d,\"phosphorus\":%d,\"potassium\":%d,\"ph\":%.2f,\"moisture\":%.1f}",
@@ -114,11 +120,45 @@ void loop() {
              npkSuccess ? potassium : 0, 
              ph, moisture);
 
-    Serial.println("  [LOCAL TEST] Cloud upload is DISABLED.");
-    Serial.printf("  [LOCAL TEST] JSON Payload generated: %s\n\n", jsonPayload);
+    Serial.printf("  [Payload] %s\n", jsonPayload);
+    uploadToCloud(jsonPayload);
   }
 
   delay(100);
+}
+
+// ========================= CLOUD HTTPS UPLOAD =========================
+
+void uploadToCloud(const char* jsonPayload) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("  [Upload Error] WiFi not connected. Skipping upload.\n");
+    return;
+  }
+
+  WiFiClientSecure client;
+  client.setInsecure(); // Bypass CA certificate chain validation for Render HTTPS
+
+  HTTPClient http;
+  http.setTimeout(15000); // 15-second timeout to allow for Render cold starts & ML inference
+
+  Serial.printf("  [Cloud] POST -> %s\n", SERVER_URL);
+  if (http.begin(client, SERVER_URL)) {
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("X-Device-UID", DEVICE_UID);
+
+    int httpResponseCode = http.POST((uint8_t*)jsonPayload, strlen(jsonPayload));
+
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.printf("  [Cloud] HTTP %d | Response: %s\n\n", httpResponseCode, response.c_str());
+    } else {
+      Serial.printf("  [Cloud Error] HTTP POST failed: %s (Code: %d)\n\n",
+                    http.errorToString(httpResponseCode).c_str(), httpResponseCode);
+    }
+    http.end();
+  } else {
+    Serial.println("  [Cloud Error] Unable to initialize HTTPS connection.\n");
+  }
 }
 
 // ========================= WIFI =======================================

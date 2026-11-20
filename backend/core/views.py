@@ -491,7 +491,7 @@ def list_devices(request):
 
     return Response(data)
 
-@api_view(['PATCH'])
+@api_view(['PATCH', 'POST', 'PUT'])
 @permission_classes([IsAuthenticated, IsMaoAdmin])
 def unassign_device(request, device_id):
     """
@@ -503,11 +503,25 @@ def unassign_device(request, device_id):
         device = IoTDevice.objects.get(device_id=device_id)
         device.farm = None
         device.save(update_fields=['farm'])
-        return Response({'message': 'Device unassigned successfully. Historical data preserved.'}, status=status.HTTP_200_OK)
+        return Response({
+            'message': 'Device unassigned successfully. Historical data preserved.',
+            'device': {
+                'device_id': device.device_id,
+                'device_uid': device.device_uid,
+                'device_name': device.device_name,
+                'is_active': device.is_active,
+                'farm_id': None,
+                'farm_location': 'Unassigned',
+                'farmer_name': 'N/A',
+                'control_id': 'N/A',
+                'last_sync': device.last_sync,
+                'registered_date': device.registered_date,
+            }
+        }, status=status.HTTP_200_OK)
     except IoTDevice.DoesNotExist:
         return Response({'error': 'Device not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['PATCH'])
+@api_view(['PATCH', 'POST', 'PUT'])
 @permission_classes([IsAuthenticated, IsMaoAdmin])
 def assign_device(request, device_id):
     """
@@ -521,13 +535,28 @@ def assign_device(request, device_id):
             return Response({'error': 'farm_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            farm = Farm.objects.get(farm_id=farm_id)
-        except Farm.DoesNotExist:
+            farm = Farm.objects.select_related('farmer', 'farmer__account').get(farm_id=int(farm_id))
+        except (Farm.DoesNotExist, ValueError, TypeError):
             return Response({'error': 'Farm not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         device.farm = farm
         device.save(update_fields=['farm'])
-        return Response({'message': f'Device assigned to Farm {farm.farm_id} successfully.'}, status=status.HTTP_200_OK)
+
+        return Response({
+            'message': f'Device {device.device_uid} assigned to {farm.farmer.firstname} {farm.farmer.lastname} ({farm.location}) successfully.',
+            'device': {
+                'device_id': device.device_id,
+                'device_uid': device.device_uid,
+                'device_name': device.device_name,
+                'is_active': device.is_active,
+                'farm_id': farm.farm_id,
+                'farm_location': farm.location,
+                'farmer_name': f"{farm.farmer.firstname} {farm.farmer.lastname}",
+                'control_id': farm.farmer.account.username,
+                'last_sync': device.last_sync,
+                'registered_date': device.registered_date,
+            }
+        }, status=status.HTTP_200_OK)
     except IoTDevice.DoesNotExist:
         return Response({'error': 'Device not found.'}, status=status.HTTP_404_NOT_FOUND)
 
